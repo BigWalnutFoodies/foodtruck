@@ -1,14 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 import logo from '../assets/BW Foodies Logo.svg'
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const navigate = useNavigate()
-  const location = useLocation()
+  const [session, setSession]   = useState(null)
+  const navigate  = useNavigate()
+  const location  = useLocation()
 
-  const navTo = (path) => { navigate(path); setMenuOpen(false) }
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => setSession(session))
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const navTo    = (path) => { navigate(path); setMenuOpen(false) }
   const isActive = (path) => location.pathname === path || (path === '/calendar' && location.pathname === '/')
+
+  const authLabel  = session ? 'Dashboard' : 'Sign In'
+  const authMobile = session ? '⚙ Dashboard' : '⚙ Sign In'
 
   return (
     <>
@@ -17,9 +28,9 @@ export default function Header() {
           <img src={logo} alt="Big Walnut Foodies" style={{ height: 64, width: 'auto' }} />
         </div>
         <nav style={styles.desktopNav}>
-          <button style={isActive('/calendar')   ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Calendar</button>
-          <button style={isActive('/apply')     ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/apply')}>Request a Date</button>
-          <button style={isActive('/dashboard') ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('/dashboard')}>Organiser Dashboard</button>
+          <button style={isActive('/calendar') ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Calendar</button>
+          <button style={isActive('/apply')    ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/apply')}>Request a Date</button>
+          <button style={isActive('/dashboard') ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('/dashboard')}>{authLabel}</button>
         </nav>
         <button style={styles.hamburger} onClick={() => setMenuOpen(o => !o)}>
           {menuOpen ? '✕' : '☰'}
@@ -30,7 +41,7 @@ export default function Header() {
         <div style={styles.mobileMenu}>
           <button style={styles.mobileNavBtn} onClick={() => navTo('/calendar')}>📅 Calendar</button>
           <button style={styles.mobileNavBtn} onClick={() => navTo('/apply')}>+ Request a Date</button>
-          <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>⚙ Organiser Dashboard</button>
+          <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>{authMobile}</button>
         </div>
       )}
 
@@ -51,7 +62,7 @@ const styles = {
     display: 'flex', alignItems: 'center',
     justifyContent: 'space-between', minHeight: 80,
   },
-  logo: { display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 },
+  logo:       { display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 },
   desktopNav: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
   navBtn: {
     background: 'transparent', border: '1px solid transparent',
