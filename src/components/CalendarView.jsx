@@ -1,44 +1,45 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-export default function CalendarView() {
-  const today = new Date()
-  const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
+export default function CalendarView({ clickable = false }) {
+  const today    = new Date()
+  const navigate = useNavigate()
+  const [current, setCurrent]     = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [eventDates, setEventDates]   = useState([])
-  const [bookedTrucks, setBookedTrucks] = useState([]) // approved applications
-  const [loading, setLoading] = useState(true)
+  const [approvedApps, setApprovedApps] = useState([])
+  const [loading, setLoading]     = useState(true)
 
   useEffect(() => {
     Promise.all([
-      supabase.from('event_dates').select('date, status'),
+      supabase.from('event_dates').select('date, capacity'),
       supabase.from('applications').select('requested_date, business_name, cuisine').eq('status', 'approved'),
     ]).then(([{ data: dates, error: e1 }, { data: apps, error: e2 }]) => {
       if (!e1) setEventDates(dates || [])
-      if (!e2) setBookedTrucks(apps || [])
+      if (!e2) setApprovedApps(apps || [])
       setLoading(false)
     })
   }, [])
 
   const year = current.getFullYear(), month = current.getMonth()
-  const firstDay = new Date(year, month, 1).getDay()
+  const firstDay  = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   const isoDate = (date) =>
     `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
   const getDateInfo = (date) => {
-    const iso = isoDate(date)
+    const iso   = isoDate(date)
     const entry = eventDates.find(e => e.date === iso)
     if (!entry) return { status: date < today ? 'past' : 'none' }
-    if (entry.status === 'booked') {
-      const truck = bookedTrucks.find(a => a.requested_date === iso)
-      return { status: 'booked', truck }
+    const approved = approvedApps.filter(a => a.requested_date === iso)
+    if (approved.length >= (entry.capacity || 1)) {
+      return { status: 'booked', trucks: approved }
     }
-    if (entry.status === 'available') return { status: 'available' }
-    return { status: 'none' }
+    return { status: 'available' }
   }
 
   const cells = []
@@ -49,10 +50,8 @@ export default function CalendarView() {
     <section id="calendar-section" style={styles.section}>
       <div style={styles.container}>
         <div style={styles.header}>
-          <div>
-            <h2 style={styles.h2}>Pop-Up Schedule</h2>
-            <p style={styles.sub}>Upcoming events and available dates</p>
-          </div>
+          <h2 style={styles.h2}>Pop-Up Schedule</h2>
+          <p style={styles.sub}>Upcoming events and available dates</p>
         </div>
 
         <div style={styles.card}>
@@ -72,31 +71,34 @@ export default function CalendarView() {
               <div style={styles.grid}>
                 {cells.map((date, i) => {
                   if (!date) return <div key={`e${i}`} />
-                  const { status, truck } = getDateInfo(date)
-                  const isToday = date.toDateString() === today.toDateString()
+                  const { status, trucks } = getDateInfo(date)
+                  const isToday     = date.toDateString() === today.toDateString()
+                  const isClickable = clickable && status === 'available'
                   return (
                     <div
                       key={i}
+                      onClick={isClickable ? () => navigate(`/apply?date=${isoDate(date)}`) : undefined}
                       style={{
                         ...styles.cell,
                         ...styles['cell_' + status],
-                        ...(isToday ? styles.cellToday : {}),
+                        ...(isToday     ? styles.cellToday    : {}),
                         ...(status === 'booked' ? styles.cellBooked : {}),
+                        ...(isClickable ? styles.cellClickable : {}),
                       }}
                     >
                       <span style={{ ...styles.dateNum, ...(status === 'past' || status === 'none' ? { color: '#bbb' } : {}) }}>
                         {date.getDate()}
                       </span>
                       {status === 'available' && (
-                        <span style={styles.availableLabel}>Open</span>
+                        <span style={styles.availableLabel}>{clickable ? 'Apply →' : 'Open'}</span>
                       )}
-                      {status === 'booked' && truck && (
-                        <span style={styles.truckLabel}>
+                      {status === 'booked' && trucks && trucks.map((truck, ti) => (
+                        <span key={ti} style={styles.truckLabel}>
                           {truck.business_name}
                           {truck.cuisine ? <span style={styles.cuisineLabel}> · {truck.cuisine}</span> : null}
                         </span>
-                      )}
-                      {status === 'booked' && !truck && (
+                      ))}
+                      {status === 'booked' && !trucks?.length && (
                         <span style={styles.bookedLabel}>Booked</span>
                       )}
                     </div>
@@ -142,6 +144,7 @@ const styles = {
   cell_none:      { background: '#f5f0e8' },
   cellToday:      { outline: '2px solid #C41230', outlineOffset: 1 },
   cellBooked:     { minHeight: 80 },
+  cellClickable:  { cursor: 'pointer', boxShadow: '0 2px 8px rgba(26,138,74,0.18)' },
   dateNum:        { fontSize: '0.82rem', fontWeight: 600, color: '#1a1208', lineHeight: 1 },
   availableLabel: { fontSize: '0.62rem', fontWeight: 600, color: '#1a8a4a', textTransform: 'uppercase', letterSpacing: 0.3 },
   truckLabel:     { fontSize: '0.62rem', fontWeight: 700, color: '#C41230', textAlign: 'center', lineHeight: 1.3, wordBreak: 'break-word' },

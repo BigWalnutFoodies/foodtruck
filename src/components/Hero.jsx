@@ -38,10 +38,10 @@ export default function Hero() {
 }
 
 const styles = {
-  hero:      { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '5rem 4rem 4rem', gap: '3rem', flexWrap: 'wrap', maxWidth: 1200, margin: '0 auto' },
+  hero:      { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2.5rem 4rem 2rem', gap: '2rem', flexWrap: 'wrap', maxWidth: 1200, margin: '0 auto' },
   inner:     { flex: '1 1 400px', maxWidth: 560 },
   tag:       { display: 'inline-block', background: '#fff0f0', border: '1px solid #f0c0c0', color: '#C41230', fontSize: '0.78rem', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 100, marginBottom: '1.5rem' },
-  h1:        { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(2.4rem, 5vw, 3.8rem)', lineHeight: 1.05, marginBottom: '1.2rem', color: '#1a1208' },
+  h1:        { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.6rem, 2.8vw, 2.4rem)', lineHeight: 1.1, marginBottom: '1rem', color: '#1a1208' },
   accent:    { color: '#C41230' },
   p:         { color: '#6b6055', fontSize: '1rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 440 },
   btnRow:    { display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' },
