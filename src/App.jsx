@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Header from './components/Header'
 import Hero from './components/Hero'
 import CalendarView from './components/CalendarView'
@@ -6,7 +7,6 @@ import BookingForm from './components/BookingForm'
 import Dashboard from './components/Dashboard'
 import Footer from './components/Footer'
 
-// Seed some booked dates and submissions
 const TODAY = new Date()
 const y = TODAY.getFullYear()
 const m = TODAY.getMonth()
@@ -47,11 +47,10 @@ const INITIAL_SUBMISSIONS = [
 ]
 
 const BOOKED_DATES = [
-  new Date(y, m, TODAY.getDate() + 8).toDateString(),  // Seoul Bowl approved
+  new Date(y, m, TODAY.getDate() + 8).toDateString(),
 ]
 
 export default function App() {
-  const [view, setView] = useState('home') // home | book | dashboard
   const [submissions, setSubmissions] = useState(INITIAL_SUBMISSIONS)
   const [bookedDates] = useState(BOOKED_DATES)
   const [toast, setToast] = useState(null)
@@ -70,22 +69,11 @@ export default function App() {
     }
     setSubmissions(prev => [newSub, ...prev])
     showToast('✅ Request submitted! You\'ll hear back within 24 hours.')
-    setView('home')
-  }
-
-  const handleApprove = (id) => {
-    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'approved' } : s))
-    showToast('✅ Request approved — truck notified!')
-  }
-
-  const handleDecline = (id) => {
-    setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: 'declined' } : s))
-    showToast('Request declined.', 'error')
   }
 
   return (
     <>
-      <Header view={view} setView={setView} />
+      <Header />
 
       {toast && (
         <div style={{
@@ -97,22 +85,19 @@ export default function App() {
         }}>{toast.msg}</div>
       )}
 
-      {view === 'home' && (
-        <>
-          <Hero setView={setView} />
-          <CalendarView bookedDates={bookedDates} submissions={submissions} setView={setView} />
-        </>
-      )}
-      {view === 'book' && (
-        <BookingForm onSubmit={handleSubmit} onCancel={() => setView('home')} bookedDates={bookedDates} />
-      )}
-      {view === 'dashboard' && (
-        <Dashboard
-          submissions={submissions}
-          onApprove={handleApprove}
-          onDecline={handleDecline}
-        />
-      )}
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Hero />
+            <CalendarView bookedDates={bookedDates} submissions={submissions} />
+          </>
+        } />
+        <Route path="/apply" element={
+          <BookingForm onSubmit={handleSubmit} bookedDates={bookedDates} />
+        } />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
       <Footer />
     </>

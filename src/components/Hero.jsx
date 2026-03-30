@@ -1,6 +1,9 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 
-export default function Hero({ setView }) {
+export default function Hero() {
+  const navigate = useNavigate()
+
   return (
     <section style={styles.hero}>
       <div style={styles.inner}>
@@ -8,7 +11,7 @@ export default function Hero({ setView }) {
         <h1 style={styles.h1}>Bring Your Truck<br /><span style={styles.accent}>To Our Pop-Up</span></h1>
         <p style={styles.p}>Check available dates, submit your info, and we'll confirm your spot. Simple, fast, no back-and-forth emails.</p>
         <div style={styles.btnRow}>
-          <button style={styles.btnPrimary} onClick={() => setView('book')}>Request a Date →</button>
+          <button style={styles.btnPrimary} onClick={() => navigate('/apply')}>Request a Date →</button>
           <button style={styles.btnSecondary} onClick={() => document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' })}>View Calendar</button>
         </div>
         <div style={styles.pills}>

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
-export default function CalendarView({ bookedDates, submissions, setView }) {
+export default function CalendarView({ bookedDates, submissions }) {
+  const navigate = useNavigate()
   const today = new Date()
   const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const year = current.getFullYear(), month = current.getMonth()
@@ -32,7 +34,7 @@ export default function CalendarView({ bookedDates, submissions, setView }) {
             <h2 style={styles.h2}>Availability Calendar</h2>
             <p style={styles.sub}>Green = open · Amber = pending review · Red = booked</p>
           </div>
-          <button style={styles.bookBtn} onClick={() => setView('book')}>+ Request a Date</button>
+          <button style={styles.bookBtn} onClick={() => navigate('/apply')}>+ Request a Date</button>
         </div>
 
         <div style={styles.card}>

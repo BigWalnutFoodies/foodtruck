@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const DEMO_DATA = {
   businessName: 'Taco Loco', email: 'maria@tacoloco.com', phone: '415-555-0101',
@@ -9,7 +10,8 @@ const DEMO_DATA = {
   requestedDate: (() => { const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().split('T')[0] })(),
 }
 
-export default function BookingForm({ onSubmit, onCancel, bookedDates }) {
+export default function BookingForm({ onSubmit, bookedDates }) {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [form, setForm] = useState(DEMO_DATA)
   const [errors, setErrors] = useState({})
@@ -32,7 +34,12 @@ export default function BookingForm({ onSubmit, onCancel, bookedDates }) {
   }
 
   const handleNext   = () => { if (validate1()) setStep(2) }
-  const handleSubmit = () => { if (validate2()) onSubmit({ ...form, requestedDate: new Date(form.requestedDate + 'T12:00:00').toDateString() }) }
+  const handleSubmit = () => {
+    if (validate2()) {
+      onSubmit({ ...form, requestedDate: new Date(form.requestedDate + 'T12:00:00').toDateString() })
+      navigate('/')
+    }
+  }
 
   const Field = ({ label, k, type = 'text', placeholder, required, hint }) => (
     <div style={s.field}>
@@ -47,7 +54,7 @@ export default function BookingForm({ onSubmit, onCancel, bookedDates }) {
   return (
     <div style={s.page}>
       <div style={s.container}>
-        <button style={s.back} onClick={onCancel}>← Back to calendar</button>
+        <button style={s.back} onClick={() => navigate('/')}>← Back to calendar</button>
         <div style={s.demoNotice}>
           ✨ <strong>Demo:</strong> Pre-filled with sample data. Hit <strong>Next Step</strong> then <strong>Submit Request</strong> to see the full flow.
         </div>
@@ -89,7 +96,7 @@ export default function BookingForm({ onSubmit, onCancel, bookedDates }) {
               <Field label="Day-of Contact Name" k="contact" placeholder="Who should we call on event day?" required />
               <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3" />
               <div style={s.btnRow}>
-                <button style={s.btnGhost}   onClick={onCancel}>Cancel</button>
+                <button style={s.btnGhost}   onClick={() => navigate('/')}>Cancel</button>
                 <button style={s.btnPrimary} onClick={handleNext}>Next Step →</button>
               </div>
             </>

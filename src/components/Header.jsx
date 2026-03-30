@@ -1,20 +1,25 @@
 import React, { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import logo from '../assets/BW Foodies Logo.svg'
 
-export default function Header({ view, setView }) {
+export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const navTo = (v) => { setView(v); setMenuOpen(false) }
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  const navTo = (path) => { navigate(path); setMenuOpen(false) }
+  const isActive = (path) => location.pathname === path
 
   return (
     <>
       <header style={styles.header}>
-        <div style={styles.logo} onClick={() => navTo('home')}>
+        <div style={styles.logo} onClick={() => navTo('/')}>
           <img src={logo} alt="Big Walnut Foodies" style={{ height: 64, width: 'auto' }} />
         </div>
         <nav style={styles.desktopNav}>
-          <button style={view === 'home'      ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('home')}>Calendar</button>
-          <button style={view === 'book'      ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('book')}>Request a Date</button>
-          <button style={view === 'dashboard' ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('dashboard')}>Organiser Dashboard</button>
+          <button style={isActive('/')          ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/')}>Calendar</button>
+          <button style={isActive('/apply')     ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/apply')}>Request a Date</button>
+          <button style={isActive('/dashboard') ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('/dashboard')}>Organiser Dashboard</button>
         </nav>
         <button style={styles.hamburger} onClick={() => setMenuOpen(o => !o)}>
           {menuOpen ? '✕' : '☰'}
@@ -23,9 +28,9 @@ export default function Header({ view, setView }) {
 
       {menuOpen && (
         <div style={styles.mobileMenu}>
-          <button style={styles.mobileNavBtn} onClick={() => navTo('home')}>📅 Calendar</button>
-          <button style={styles.mobileNavBtn} onClick={() => navTo('book')}>+ Request a Date</button>
-          <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('dashboard')}>⚙ Organiser Dashboard</button>
+          <button style={styles.mobileNavBtn} onClick={() => navTo('/')}>📅 Calendar</button>
+          <button style={styles.mobileNavBtn} onClick={() => navTo('/apply')}>+ Request a Date</button>
+          <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>⚙ Organiser Dashboard</button>
         </div>
       )}
 
