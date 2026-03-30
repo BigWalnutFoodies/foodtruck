@@ -8,7 +8,7 @@ export default function Header() {
   const location = useLocation()
 
   const navTo = (path) => { navigate(path); setMenuOpen(false) }
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => location.pathname === path || (path === '/calendar' && location.pathname === '/')
 
   return (
     <>
@@ -17,7 +17,7 @@ export default function Header() {
           <img src={logo} alt="Big Walnut Foodies" style={{ height: 64, width: 'auto' }} />
         </div>
         <nav style={styles.desktopNav}>
-          <button style={isActive('/')          ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/')}>Calendar</button>
+          <button style={isActive('/calendar')   ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Calendar</button>
           <button style={isActive('/apply')     ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/apply')}>Request a Date</button>
           <button style={isActive('/dashboard') ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('/dashboard')}>Organiser Dashboard</button>
         </nav>
@@ -28,7 +28,7 @@ export default function Header() {
 
       {menuOpen && (
         <div style={styles.mobileMenu}>
-          <button style={styles.mobileNavBtn} onClick={() => navTo('/')}>📅 Calendar</button>
+          <button style={styles.mobileNavBtn} onClick={() => navTo('/calendar')}>📅 Calendar</button>
           <button style={styles.mobileNavBtn} onClick={() => navTo('/apply')}>+ Request a Date</button>
           <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>⚙ Organiser Dashboard</button>
         </div>

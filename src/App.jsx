@@ -13,6 +13,7 @@ export default function App() {
       <Header />
       <Routes>
         <Route path="/" element={<><Hero /><CalendarView /></>} />
+        <Route path="/calendar" element={<CalendarView />} />
         <Route path="/apply" element={<BookingForm />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
