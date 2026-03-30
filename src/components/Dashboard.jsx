@@ -1,4 +1,72 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
+
+// ─── Auth wrapper ────────────────────────────────────────────────────────────
+
+export default function Dashboard() {
+  const [session, setSession] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setSession(session)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  if (loading) return <div style={s.center}>Loading…</div>
+  if (!session) return <LoginForm />
+  return <DashboardContent session={session} />
+}
+
+// ─── Login form ──────────────────────────────────────────────────────────────
+
+function LoginForm() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleLogin = async () => {
+    setError(null)
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) setError('Invalid email or password.')
+    setLoading(false)
+  }
+
+  const onKey = (e) => { if (e.key === 'Enter') handleLogin() }
+
+  return (
+    <div style={s.loginPage}>
+      <div style={s.loginCard}>
+        <h2 style={s.loginTitle}>Organiser Login</h2>
+        <p style={s.loginSub}>Big Walnut Foodies — organisers only</p>
+        <div style={s.field}>
+          <label style={s.label}>Email</label>
+          <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={onKey}
+            placeholder="you@example.com" style={s.input} autoFocus />
+        </div>
+        <div style={s.field}>
+          <label style={s.label}>Password</label>
+          <input type="password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={onKey}
+            placeholder="••••••••" style={s.input} />
+        </div>
+        {error && <div style={s.errBox}>{error}</div>}
+        <button style={{ ...s.btnPrimary, width: '100%', opacity: loading ? 0.7 : 1 }}
+          onClick={handleLogin} disabled={loading}>
+          {loading ? 'Signing in…' : 'Sign In'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Dashboard content ───────────────────────────────────────────────────────
 
 const STATUS = {
   pending:  { label: 'Pending',  bg: '#fff8e6', color: '#996600', dot: '#F5A800' },
@@ -6,54 +74,90 @@ const STATUS = {
   declined: { label: 'Declined', bg: '#fef0f0', color: '#a00f25', dot: '#C41230' },
 }
 
-const CUISINE_FILTERS = ['All', 'American', 'Mexican', 'Korean', 'Indian', 'Italian', 'Thai', 'Mediterranean', 'BBQ', 'Desserts', 'Other']
+const CUISINE_FILTERS = ['All','American','Mexican','Korean','Indian','Italian','Thai','Mediterranean','BBQ','Desserts','Other']
 
-const MOCK_SUBMISSIONS = [
-  { id: 1, status: 'pending',  businessName: 'Taco Loco',             email: 'maria@tacoloco.com',    phone: '415-555-0101', contact: 'Maria Garcia', yearsInBusiness: '4', menuLink: 'https://tacoloco.com/menu',  instagram: '@tacoloco',      bio: 'Authentic Mexican street tacos with housemade salsas.',              cuisine: 'Mexican',  requestedDate: 'April 12, 2026', submitted: 'March 28, 2026' },
-  { id: 2, status: 'approved', businessName: 'Seoul Bowl',            email: 'hello@seoulbowl.com',   phone: '415-555-0202', contact: 'Jin Park',     yearsInBusiness: '2', menuLink: 'https://seoulbowl.com',     instagram: '@seoulbowlsf',   bio: 'Korean-fusion rice bowls and bao buns.',                           cuisine: 'Korean',   requestedDate: 'April 19, 2026', submitted: 'March 25, 2026' },
-  { id: 3, status: 'pending',  businessName: 'The Grilled Cheese Co.',email: 'gcco@email.com',         phone: '650-555-0303', contact: 'Sam T.',       yearsInBusiness: '6', menuLink: 'https://grilledco.com',     instagram: '@grilledcheeseco',bio: 'Gourmet grilled cheese with rotating seasonal ingredients.',       cuisine: 'American', requestedDate: 'April 26, 2026', submitted: 'March 30, 2026' },
-  { id: 4, status: 'declined', businessName: 'Bombay Bites',          email: 'bombay@bites.in',        phone: '408-555-0404', contact: 'Priya S.',     yearsInBusiness: '1', menuLink: 'https://bombaybites.com',   instagram: '@bombaybites',   bio: 'Modern Indian street food — samosas, chaat, chai.',                cuisine: 'Indian',   requestedDate: 'April 12, 2026', submitted: 'March 20, 2026' },
-]
-
-export default function Dashboard() {
-  const [submissions, setSubmissions] = useState(
-    JSON.parse(localStorage.getItem('foodtruck_submissions') || 'null') || MOCK_SUBMISSIONS
-  )
+function DashboardContent({ session }) {
+  const [applications, setApplications] = useState([])
+  const [eventDates, setEventDates]     = useState([])
+  const [loadingData, setLoadingData]   = useState(true)
   const [statusFilter, setStatusFilter] = useState('All')
   const [cuisineFilter, setCuisineFilter] = useState('All')
-  const [expanded, setExpanded] = useState(null)
-  const [toast, setToast] = useState(null)
+  const [expanded, setExpanded]         = useState(null)
+  const [toast, setToast]               = useState(null)
+  const [newDate, setNewDate]           = useState('')
+  const [tab, setTab]                   = useState('applications') // applications | calendar
 
-  const showToast = (msg, type = 'success') => { setToast({ msg, type }); setTimeout(() => setToast(null), 2500) }
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3000)
+  }
 
-  const updateStatus = (id, status) => {
-    const updated = submissions.map(s => s.id === id ? { ...s, status } : s)
-    setSubmissions(updated)
-    localStorage.setItem('foodtruck_submissions', JSON.stringify(updated))
-    showToast(status === 'approved' ? '✓ Truck approved' : 'Truck declined', status === 'approved' ? 'success' : 'error')
+  const fetchAll = async () => {
+    const [{ data: apps }, { data: dates }] = await Promise.all([
+      supabase.from('applications').select('*').order('submitted_at', { ascending: false }),
+      supabase.from('event_dates').select('*').order('date', { ascending: true }),
+    ])
+    setApplications(apps || [])
+    setEventDates(dates || [])
+    setLoadingData(false)
+  }
+
+  useEffect(() => { fetchAll() }, [])
+
+  const handleApprove = async (app) => {
+    await supabase.from('applications').update({ status: 'approved', updated_at: new Date().toISOString() }).eq('id', app.id)
+    await supabase.from('event_dates').upsert({ date: app.requested_date, status: 'booked' }, { onConflict: 'date' })
+    await fetchAll()
+    showToast('✓ Application approved')
+  }
+
+  const handleDecline = async (app) => {
+    await supabase.from('applications').update({ status: 'declined', updated_at: new Date().toISOString() }).eq('id', app.id)
+    await fetchAll()
+    showToast('Application declined', 'error')
+  }
+
+  const handleAddDate = async () => {
+    if (!newDate) return
+    const { error } = await supabase.from('event_dates').insert({ date: newDate, status: 'available' })
+    if (error) { showToast('Date already exists or invalid.', 'error'); return }
+    setNewDate('')
+    await fetchAll()
+    showToast('Date added to calendar')
+  }
+
+  const handleRemoveDate = async (id) => {
+    await supabase.from('event_dates').delete().eq('id', id)
+    await fetchAll()
+    showToast('Date removed')
   }
 
   const exportPhones = () => {
-    const csv = 'Business,Phone\n' + submissions.map(s => `${s.businessName},${s.phone}`).join('\n')
+    const csv = 'Business,Contact,Phone\n' + applications.map(a => `"${a.business_name}","${a.contact_name}","${a.phone}"`).join('\n')
     const a = document.createElement('a')
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }))
     a.download = 'truck-phones.csv'
     a.click()
   }
 
-  const filtered = submissions.filter(s => {
-    if (statusFilter !== 'All' && s.status !== statusFilter) return false
-    if (cuisineFilter !== 'All' && s.cuisine !== cuisineFilter) return false
+  const filtered = applications.filter(a => {
+    if (statusFilter !== 'All' && a.status !== statusFilter.toLowerCase()) return false
+    if (cuisineFilter !== 'All' && a.cuisine !== cuisineFilter) return false
     return true
   })
 
-  const counts = { total: submissions.length, pending: submissions.filter(s => s.status === 'pending').length, approved: submissions.filter(s => s.status === 'approved').length, declined: submissions.filter(s => s.status === 'declined').length }
+  const counts = {
+    total: applications.length,
+    pending: applications.filter(a => a.status === 'pending').length,
+    approved: applications.filter(a => a.status === 'approved').length,
+    declined: applications.filter(a => a.status === 'declined').length,
+  }
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '2rem 1.25rem', background: '#fffdf7', minHeight: '80vh' }}>
 
       {toast && (
-        <div style={{ position: 'fixed', top: 80, right: 24, zIndex: 999, background: toast.type === 'error' ? '#C41230' : '#1a8a4a', color: '#fff', padding: '0.65rem 1.2rem', borderRadius: 8, fontWeight: 600, fontSize: '0.88rem' }}>
+        <div style={{ position: 'fixed', top: 80, right: 24, zIndex: 999, background: toast.type === 'error' ? '#C41230' : '#1a8a4a', color: '#fff', padding: '0.65rem 1.2rem', borderRadius: 8, fontWeight: 600, fontSize: '0.88rem', boxShadow: '0 4px 16px rgba(0,0,0,0.15)' }}>
           {toast.msg}
         </div>
       )}
@@ -61,10 +165,13 @@ export default function Dashboard() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontWeight: 700, fontSize: '1.3rem', color: '#1a1208' }}>Organiser Dashboard</h2>
-          <p style={{ color: '#6b6055', fontSize: '0.85rem' }}>Review and manage food truck applications</p>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#1a1208' }}>Organiser Dashboard</h2>
+          <p style={{ color: '#6b6055', fontSize: '0.82rem' }}>{session.user.email}</p>
         </div>
-        <button style={s.btnExport} onClick={exportPhones}>↓ Export Phone Numbers</button>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button style={s.btnExport} onClick={exportPhones}>↓ Export Phones</button>
+          <button style={s.btnLogout} onClick={() => supabase.auth.signOut()}>Sign Out</button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -82,92 +189,165 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Filters */}
-      <div style={s.filters}>
-        <div style={s.filterGroup}>
-          <span style={s.filterLabel}>Status:</span>
-          {['All', 'pending', 'approved', 'declined'].map(f => (
-            <button key={f} style={statusFilter === f ? { ...s.chip, ...s.chipActive } : s.chip} onClick={() => setStatusFilter(f)}>
-              {f.charAt(0).toUpperCase() + f.slice(1)}
-            </button>
-          ))}
-        </div>
-        <div style={s.filterGroup}>
-          <span style={s.filterLabel}>Cuisine:</span>
-          {CUISINE_FILTERS.slice(0, 6).map(f => (
-            <button key={f} style={cuisineFilter === f ? { ...s.chip, ...s.chipActive } : s.chip} onClick={() => setCuisineFilter(f)}>
-              {f}
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+        {[['applications','Applications'], ['calendar','Manage Dates']].map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key)}
+            style={{ ...s.tab, ...(tab === key ? s.tabActive : {}) }}>{label}</button>
+        ))}
       </div>
 
-      {/* Submissions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {filtered.map(sub => {
-          const st = STATUS[sub.status]
-          const isOpen = expanded === sub.id
-          return (
-            <div key={sub.id} style={s.card}>
-              <div style={s.row} onClick={() => setExpanded(isOpen ? null : sub.id)}>
-                <div style={{ fontSize: '1.5rem' }}>🚚</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208' }}>{sub.businessName}</div>
-                  <div style={{ fontSize: '0.78rem', color: '#6b6055' }}>{sub.cuisine} · {sub.requestedDate}</div>
-                </div>
-                <span style={{ background: st.bg, color: st.color, fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.7rem', borderRadius: 100, display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
-                  <span style={{ width: 5, height: 5, borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
-                  {st.label}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#6b6055', whiteSpace: 'nowrap' }}>Submitted {sub.submitted}</span>
-                <span style={{ color: '#6b6055', fontSize: '0.75rem' }}>{isOpen ? '▲' : '▼'}</span>
-              </div>
+      {loadingData ? (
+        <div style={s.center}>Loading…</div>
+      ) : tab === 'applications' ? (
+        <>
+          {/* Filters */}
+          <div style={s.filters}>
+            <div style={s.filterGroup}>
+              <span style={s.filterLabel}>Status:</span>
+              {['All','pending','approved','declined'].map(f => (
+                <button key={f} style={statusFilter === f ? { ...s.chip, ...s.chipActive } : s.chip} onClick={() => setStatusFilter(f)}>
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div style={s.filterGroup}>
+              <span style={s.filterLabel}>Cuisine:</span>
+              {CUISINE_FILTERS.slice(0,6).map(f => (
+                <button key={f} style={cuisineFilter === f ? { ...s.chip, ...s.chipActive } : s.chip} onClick={() => setCuisineFilter(f)}>{f}</button>
+              ))}
+            </div>
+          </div>
 
-              {isOpen && (
-                <div style={s.detail}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem', marginBottom: '1rem' }}>
-                    {[['Email', sub.email], ['Phone', sub.phone], ['Day-of contact', sub.contact], ['Years in business', sub.yearsInBusiness], ['Instagram', sub.instagram], ['Menu', sub.menuLink]].map(([label, val]) => (
-                      <div key={label} style={{ display: 'flex', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b6055', textTransform: 'uppercase', minWidth: 110 }}>{label}</span>
-                        <span style={{ fontSize: '0.85rem', color: '#1a1208' }}>{val}</span>
+          {/* Application rows */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {filtered.map(app => {
+              const st = STATUS[app.status] || STATUS.pending
+              const isOpen = expanded === app.id
+              return (
+                <div key={app.id} style={s.card}>
+                  <div style={s.row} onClick={() => setExpanded(isOpen ? null : app.id)}>
+                    <div style={{ fontSize: '1.5rem' }}>🚚</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208' }}>{app.business_name}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#6b6055' }}>{app.cuisine} · {app.requested_date}</div>
+                    </div>
+                    <span style={{ background: st.bg, color: st.color, fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.7rem', borderRadius: 100, display: 'inline-flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: st.dot, flexShrink: 0 }} />
+                      {st.label}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: '#6b6055', whiteSpace: 'nowrap' }}>
+                      {new Date(app.submitted_at).toLocaleDateString()}
+                    </span>
+                    <span style={{ color: '#6b6055', fontSize: '0.75rem' }}>{isOpen ? '▲' : '▼'}</span>
+                  </div>
+
+                  {isOpen && (
+                    <div style={s.detail}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem', marginBottom: '1rem' }}>
+                        {[
+                          ['Email', app.email],
+                          ['Phone', app.phone],
+                          ['Day-of contact', app.contact_name],
+                          ['Years in business', app.years_in_biz],
+                          ['Instagram', app.instagram],
+                          ['Menu', app.menu_link],
+                        ].map(([label, val]) => val ? (
+                          <div key={label} style={{ display: 'flex', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#6b6055', textTransform: 'uppercase', minWidth: 110 }}>{label}</span>
+                            <span style={{ fontSize: '0.85rem', color: '#1a1208', wordBreak: 'break-all' }}>{val}</span>
+                          </div>
+                        ) : null)}
                       </div>
-                    ))}
-                  </div>
-                  <div style={{ background: '#f5f0e8', borderRadius: 8, padding: '0.75rem', fontSize: '0.85rem', color: '#3a2e20', marginBottom: '1rem', lineHeight: 1.6 }}>
-                    <strong>Bio: </strong>{sub.bio}
-                  </div>
-                  {sub.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button style={s.btnApprove} onClick={() => updateStatus(sub.id, 'approved')}>✓ Approve</button>
-                      <button style={s.btnDecline} onClick={() => updateStatus(sub.id, 'declined')}>✗ Decline</button>
+                      {app.bio && (
+                        <div style={{ background: '#f5f0e8', borderRadius: 8, padding: '0.75rem', fontSize: '0.85rem', color: '#3a2e20', marginBottom: '1rem', lineHeight: 1.6 }}>
+                          <strong>Bio: </strong>{app.bio}
+                        </div>
+                      )}
+                      {app.logo_url && (
+                        <div style={{ marginBottom: '1rem' }}>
+                          <img src={app.logo_url} alt="Truck logo" style={{ maxHeight: 80, maxWidth: 200, borderRadius: 8, border: '1px solid #e8e0d0' }} />
+                        </div>
+                      )}
+                      {app.status === 'pending' && (
+                        <div style={{ display: 'flex', gap: '0.75rem' }}>
+                          <button style={s.btnApprove} onClick={() => handleApprove(app)}>✓ Approve</button>
+                          <button style={s.btnDecline} onClick={() => handleDecline(app)}>✗ Decline</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          )
-        })}
-        {filtered.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#6b6055', border: '1px dashed #e8e0d0', borderRadius: 12 }}>
-            No submissions match the current filters.
+              )
+            })}
+            {filtered.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '3rem', color: '#6b6055', border: '1px dashed #e8e0d0', borderRadius: 12 }}>
+                No applications match the current filters.
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      ) : (
+        /* Calendar date management */
+        <div style={s.card}>
+          <h3 style={{ fontWeight: 700, fontSize: '1rem', color: '#1a1208', marginBottom: '0.5rem' }}>Available Dates</h3>
+          <p style={{ color: '#6b6055', fontSize: '0.85rem', marginBottom: '1.25rem' }}>Add or remove dates from the public calendar.</p>
+
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <input type="date" value={newDate} min={new Date().toISOString().split('T')[0]}
+              onChange={e => setNewDate(e.target.value)}
+              style={{ ...s.input, maxWidth: 200 }} />
+            <button style={s.btnApprove} onClick={handleAddDate}>+ Add Date</button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {eventDates.length === 0 && (
+              <div style={{ color: '#6b6055', fontSize: '0.85rem' }}>No dates on calendar yet.</div>
+            )}
+            {eventDates.map(ed => (
+              <div key={ed.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.65rem 1rem', background: '#f5f0e8', borderRadius: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: ed.status === 'booked' ? '#C41230' : '#1a8a4a', flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1a1208' }}>{ed.date}</span>
+                  <span style={{ fontSize: '0.75rem', color: '#6b6055', textTransform: 'capitalize' }}>{ed.status}</span>
+                </div>
+                <button style={s.btnRemove} onClick={() => handleRemoveDate(ed.id)}>Remove</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
 const s = {
-  statCard:    { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 10, padding: '1rem 1.2rem' },
-  filters:     { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#fff', border: '1px solid #e8e0d0', borderRadius: 10, padding: '0.9rem 1.1rem' },
-  filterGroup: { display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' },
-  filterLabel: { fontSize: '0.72rem', fontWeight: 700, color: '#6b6055', textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 56 },
-  chip:        { background: '#f5f0e8', border: '1px solid #e8e0d0', borderRadius: 100, padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 500, color: '#6b6055', cursor: 'pointer' },
-  chipActive:  { background: '#C41230', border: '1px solid #C41230', color: '#fff', fontWeight: 700 },
-  card:        { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 12, overflow: 'hidden' },
-  row:         { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.2rem', cursor: 'pointer', flexWrap: 'wrap' },
-  detail:      { borderTop: '1px solid #e8e0d0', padding: '1.2rem', background: '#fdfaf6' },
-  btnExport:   { background: 'transparent', border: '1px solid #e8e0d0', borderRadius: 8, padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, color: '#1a1208', cursor: 'pointer' },
-  btnApprove:  { background: '#1a8a4a', color: '#fff', border: 'none', borderRadius: 8, padding: '0.55rem 1.3rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' },
-  btnDecline:  { background: 'transparent', color: '#C41230', border: '1px solid #C41230', borderRadius: 8, padding: '0.55rem 1.3rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' },
+  center:     { textAlign: 'center', padding: '4rem', color: '#6b6055' },
+  loginPage:  { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '70vh', padding: '2rem', background: '#fffdf7' },
+  loginCard:  { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 16, padding: '2.5rem', width: '100%', maxWidth: 400, boxShadow: '0 4px 24px rgba(0,0,0,0.08)' },
+  loginTitle: { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#1a1208', marginBottom: 6 },
+  loginSub:   { color: '#6b6055', fontSize: '0.85rem', marginBottom: '1.5rem' },
+  field:      { display: 'flex', flexDirection: 'column', gap: 4, marginBottom: '1rem' },
+  label:      { fontSize: '0.82rem', fontWeight: 600, color: '#1a1208' },
+  input:      { border: '1.5px solid #e8e0d0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '0.9rem', outline: 'none', color: '#1a1208', background: '#fff', width: '100%', boxSizing: 'border-box' },
+  errBox:     { background: '#fef0f0', border: '1px solid #f0c0c0', borderRadius: 8, padding: '0.65rem 1rem', color: '#C41230', fontSize: '0.85rem', marginBottom: '1rem' },
+  statCard:   { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 10, padding: '1rem 1.2rem' },
+  tab:        { background: 'transparent', border: '1.5px solid #e8e0d0', borderRadius: 8, padding: '0.45rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, color: '#6b6055', cursor: 'pointer' },
+  tabActive:  { background: '#C41230', border: '1.5px solid #C41230', color: '#fff' },
+  filters:    { display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem', background: '#fff', border: '1px solid #e8e0d0', borderRadius: 10, padding: '0.9rem 1.1rem' },
+  filterGroup:{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' },
+  filterLabel:{ fontSize: '0.72rem', fontWeight: 700, color: '#6b6055', textTransform: 'uppercase', letterSpacing: 0.5, minWidth: 56 },
+  chip:       { background: '#f5f0e8', border: '1px solid #e8e0d0', borderRadius: 100, padding: '0.2rem 0.7rem', fontSize: '0.75rem', fontWeight: 500, color: '#6b6055', cursor: 'pointer' },
+  chipActive: { background: '#C41230', border: '1px solid #C41230', color: '#fff', fontWeight: 700 },
+  card:       { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 12, overflow: 'hidden', padding: 0 },
+  row:        { display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '1rem 1.2rem', cursor: 'pointer', flexWrap: 'wrap' },
+  detail:     { borderTop: '1px solid #e8e0d0', padding: '1.2rem', background: '#fdfaf6' },
+  btnPrimary: { background: '#C41230', color: '#fff', border: 'none', borderRadius: 8, padding: '0.65rem 1.4rem', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer' },
+  btnExport:  { background: 'transparent', border: '1px solid #e8e0d0', borderRadius: 8, padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, color: '#1a1208', cursor: 'pointer' },
+  btnLogout:  { background: 'transparent', border: '1px solid #e8e0d0', borderRadius: 8, padding: '0.5rem 1.1rem', fontSize: '0.85rem', fontWeight: 600, color: '#6b6055', cursor: 'pointer' },
+  btnApprove: { background: '#1a8a4a', color: '#fff', border: 'none', borderRadius: 8, padding: '0.55rem 1.3rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' },
+  btnDecline: { background: 'transparent', color: '#C41230', border: '1px solid #C41230', borderRadius: 8, padding: '0.55rem 1.3rem', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer' },
+  btnRemove:  { background: 'transparent', color: '#C41230', border: '1px solid #f0c0c0', borderRadius: 6, padding: '0.3rem 0.8rem', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer' },
 }
