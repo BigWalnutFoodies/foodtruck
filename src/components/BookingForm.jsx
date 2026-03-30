@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 const DEMO_DATA = {
   businessName: 'Taco Loco', email: 'maria@tacoloco.com', phone: '415-555-0101',
@@ -10,10 +10,12 @@ const DEMO_DATA = {
   requestedDate: (() => { const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().split('T')[0] })(),
 }
 
-export default function BookingForm({ onSubmit, bookedDates }) {
+export default function BookingForm({ onSubmit }) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const preselectedDate = searchParams.get('date') || DEMO_DATA.requestedDate
   const [step, setStep] = useState(1)
-  const [form, setForm] = useState(DEMO_DATA)
+  const [form, setForm] = useState({ ...DEMO_DATA, requestedDate: preselectedDate })
   const [errors, setErrors] = useState({})
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 

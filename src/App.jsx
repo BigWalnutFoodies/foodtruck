@@ -89,11 +89,11 @@ export default function App() {
         <Route path="/" element={
           <>
             <Hero />
-            <CalendarView bookedDates={bookedDates} submissions={submissions} />
+            <CalendarView />
           </>
         } />
         <Route path="/apply" element={
-          <BookingForm onSubmit={handleSubmit} bookedDates={bookedDates} />
+          <BookingForm onSubmit={handleSubmit} />
         } />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="*" element={<Navigate to="/" replace />} />
