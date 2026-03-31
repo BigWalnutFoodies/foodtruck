@@ -347,7 +347,6 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
   const today   = new Date()
   const [current, setCurrent]   = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selected, setSelected] = useState(null)
-  const [newDate, setNewDate]   = useState('')
   const [newCap, setNewCap]     = useState(1)
 
   const year = current.getFullYear(), month = current.getMonth()
@@ -391,6 +390,9 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
           </span>
           <button style={s.navBtn} onClick={() => setCurrent(new Date(year, month + 1, 1))}>›</button>
         </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.75rem' }}>
+          <button style={s.btnRemove} onClick={onClearPast}>Clear past dates</button>
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 4, marginBottom: 4 }}>
           {DAYS.map(d => <div key={d} style={s.dayHead}>{d}</div>)}
@@ -406,7 +408,9 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
 
             if (!data) {
               return (
-                <div key={i} style={{ ...s.ocCell, opacity: isPast ? 0.4 : 1 }}>
+                <div key={i}
+                  onClick={() => !isPast && setSelected(isSelected ? null : iso)}
+                  style={{ ...s.ocCell, opacity: isPast ? 0.4 : 1, cursor: isPast ? 'default' : 'pointer' }}>
                   <span style={s.ocNum}>{date.getDate()}</span>
                 </div>
               )
@@ -425,7 +429,7 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
                 }}
               >
                 <span style={s.ocNum}>{date.getDate()}</span>
-                <span style={{ fontSize: '0.58rem', fontWeight: 700, color: data.isFull ? '#C41230' : '#1a8a4a' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, color: data.isFull ? '#C41230' : '#1a6e3e' }}>
                   {data.approved.length}/{data.cap}
                 </span>
                 {data.pending.length > 0 && (
@@ -442,9 +446,28 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a8a4a', display: 'inline-block' }} /> Available slots</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#C41230', display: 'inline-block' }} /> Full</span>
           <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F5A800', display: 'inline-block' }} /> Pending</span>
-          <span style={{ marginLeft: 'auto', color: '#bbb' }}>Click a date to manage</span>
+          <span style={{ marginLeft: 'auto', color: '#bbb' }}>Click any date to add or manage</span>
         </div>
       </div>
+
+      {/* Add date panel — shown when clicking an empty cell */}
+      {selected && !selData && (
+        <div style={{ background: '#fff', border: '1.5px solid #1a8a4a', borderRadius: 12, padding: '1.25rem', marginBottom: '1rem' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '1rem', color: '#1a1208', margin: '0 0 0.75rem' }}>Add {selected} to calendar</h3>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            <div>
+              <label style={s.label}>Slots</label>
+              <input type="number" value={newCap} min={1} max={20}
+                onChange={e => setNewCap(Math.max(1, parseInt(e.target.value) || 1))}
+                style={{ ...s.input, width: 70 }} />
+            </div>
+            <button style={s.btnApprove} onClick={() => { onAddDate(selected, newCap); setNewCap(1) }}>
+              + Add Date
+            </button>
+            <button style={s.btnCancel} onClick={() => setSelected(null)}>Cancel</button>
+          </div>
+        </div>
+      )}
 
       {/* Selected date panel */}
       {selected && selData && (
@@ -503,30 +526,6 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
         </div>
       )}
 
-      {/* Add date */}
-      <div style={{ background: '#fff', border: '1px solid #e8e0d0', borderRadius: 12, padding: '1.25rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208', margin: 0 }}>Add Date to Calendar</h3>
-          <button style={s.btnRemove} onClick={onClearPast}>Clear past dates</button>
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
-          <div>
-            <label style={s.label}>Date</label>
-            <input type="date" value={newDate} min={new Date().toISOString().split('T')[0]}
-              onChange={e => setNewDate(e.target.value)}
-              style={{ ...s.input, width: 180 }} />
-          </div>
-          <div>
-            <label style={s.label}>Slots</label>
-            <input type="number" value={newCap} min={1} max={20}
-              onChange={e => setNewCap(Math.max(1, parseInt(e.target.value) || 1))}
-              style={{ ...s.input, width: 70 }} />
-          </div>
-          <button style={s.btnApprove} onClick={() => { onAddDate(newDate, newCap); setNewDate(''); setNewCap(1) }}>
-            + Add
-          </button>
-        </div>
-      </div>
     </div>
   )
 }

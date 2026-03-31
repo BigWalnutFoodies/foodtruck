@@ -8,6 +8,19 @@ const EMPTY = {
   bio: '', references: '', cuisine: '', requestedDate: '',
 }
 
+// Field must live outside BookingForm — defining it inside causes remount on every keystroke (focus loss)
+function Field({ label, k, type = 'text', placeholder, required, hint, form, errors, onSet }) {
+  return (
+    <div style={s.field}>
+      <label style={s.label}>{label}{required && <span style={{ color: '#C41230' }}> *</span>}</label>
+      {hint && <span style={s.hint}>{hint}</span>}
+      <input type={type} value={form[k]} placeholder={placeholder} onChange={e => onSet(k, e.target.value)}
+        style={{ ...s.input, ...(errors[k] ? s.inputErr : {}) }} />
+      {errors[k] && <span style={s.errMsg}>{errors[k]}</span>}
+    </div>
+  )
+}
+
 export default function BookingForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -83,7 +96,6 @@ export default function BookingForm() {
 
     setSubmitting(false)
     if (!error) {
-      // Fire notification — failure must never block the success screen
       try {
         await supabase.functions.invoke('notify-new-application', {
           body: {
@@ -100,16 +112,6 @@ export default function BookingForm() {
       setErrors({ submit: 'Something went wrong — please try again.' })
     }
   }
-
-  const Field = ({ label, k, type = 'text', placeholder, required, hint }) => (
-    <div style={s.field}>
-      <label style={s.label}>{label}{required && <span style={{ color: '#C41230' }}> *</span>}</label>
-      {hint && <span style={s.hint}>{hint}</span>}
-      <input type={type} value={form[k]} placeholder={placeholder} onChange={e => set(k, e.target.value)}
-        style={{ ...s.input, ...(errors[k] ? s.inputErr : {}) }} />
-      {errors[k] && <span style={s.errMsg}>{errors[k]}</span>}
-    </div>
-  )
 
   if (submitted) {
     return (
@@ -149,7 +151,7 @@ export default function BookingForm() {
               <h2 style={s.h2}>Tell us about your truck</h2>
               <p style={s.sub}>Basic contact info so we can get in touch.</p>
               <div style={s.grid2}>
-                <Field label="Business Name" k="businessName" placeholder="Taco Loco" required />
+                <Field label="Business Name" k="businessName" placeholder="Taco Loco" required form={form} errors={errors} onSet={set} />
                 <div style={s.field}>
                   <label style={s.label}>Cuisine Type <span style={{ color: '#C41230' }}>*</span></label>
                   <select value={form.cuisine} onChange={e => set('cuisine', e.target.value)}
@@ -163,11 +165,11 @@ export default function BookingForm() {
                 </div>
               </div>
               <div style={s.grid2}>
-                <Field label="Email Address" k="email" type="email" placeholder="you@yourtruck.com" required />
-                <Field label="Phone Number"  k="phone" type="tel"   placeholder="415-555-0100" required />
+                <Field label="Email Address" k="email" type="email" placeholder="you@yourtruck.com" required form={form} errors={errors} onSet={set} />
+                <Field label="Phone Number"  k="phone" type="tel"   placeholder="415-555-0100"      required form={form} errors={errors} onSet={set} />
               </div>
-              <Field label="Day-of Contact Name" k="contact" placeholder="Who should we call on event day?" required />
-              <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3" required />
+              <Field label="Day-of Contact Name" k="contact"         placeholder="Who should we call on event day?" required form={form} errors={errors} onSet={set} />
+              <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3"            required form={form} errors={errors} onSet={set} />
               <div style={s.btnRow}>
                 <button style={s.btnGhost}   onClick={() => navigate('/')}>Cancel</button>
                 <button style={s.btnPrimary} onClick={handleNext}>Next Step →</button>
@@ -189,11 +191,11 @@ export default function BookingForm() {
                 {errors.requestedDate && <span style={s.errMsg}>{errors.requestedDate}</span>}
               </div>
 
-              <Field label="Menu Link" k="menuLink" placeholder="https://yourtruck.com/menu" hint="Link to your online menu" required />
+              <Field label="Menu Link" k="menuLink" placeholder="https://yourtruck.com/menu" hint="Link to your online menu" required form={form} errors={errors} onSet={set} />
 
               <div style={s.grid2}>
-                <Field label="Instagram" k="instagram" placeholder="@yourtruck" required />
-                <Field label="Facebook"  k="facebook"  placeholder="facebook.com/yourtruck" />
+                <Field label="Instagram" k="instagram" placeholder="@yourtruck"               required form={form} errors={errors} onSet={set} />
+                <Field label="Facebook"  k="facebook"  placeholder="facebook.com/yourtruck"            form={form} errors={errors} onSet={set} />
               </div>
 
               <div style={s.field}>
