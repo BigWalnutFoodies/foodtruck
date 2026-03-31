@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
@@ -25,6 +25,11 @@ export default function BookingForm() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const preselectedDate = searchParams.get('date') || ''
+  const formRef = useRef(null)
+
+  useEffect(() => {
+    if (!preselectedDate) navigate('/', { replace: true })
+  }, [])
 
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({ ...EMPTY, requestedDate: preselectedDate })
@@ -56,7 +61,10 @@ export default function BookingForm() {
     setErrors(e); return Object.keys(e).length === 0
   }
 
-  const handleNext = () => { if (validate1()) setStep(2) }
+  const handleNext = () => {
+    if (validate1()) setStep(2)
+    else formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   const handleSubmit = async () => {
     if (!validate2()) return
@@ -95,6 +103,11 @@ export default function BookingForm() {
     })
 
     setSubmitting(false)
+    if (error) {
+      setErrors({ submit: 'Something went wrong — please try again.' })
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
+    }
     if (!error) {
       try {
         await supabase.functions.invoke('notify-new-application', {
@@ -108,8 +121,6 @@ export default function BookingForm() {
         })
       } catch (_) { /* silent */ }
       setSubmitted(true)
-    } else {
-      setErrors({ submit: 'Something went wrong — please try again.' })
     }
   }
 
@@ -133,7 +144,7 @@ export default function BookingForm() {
       <div style={s.container}>
         <button style={s.back} onClick={() => navigate('/')}>← Back to calendar</button>
 
-        <div style={s.formCard}>
+        <div style={s.formCard} ref={formRef}>
           <div style={s.progress}>
             {[1, 2].map(n => (
               <div key={n} style={s.progressStep}>
@@ -145,6 +156,10 @@ export default function BookingForm() {
             ))}
             <div style={s.progressLine} />
           </div>
+
+          {Object.keys(errors).length > 0 && !errors.submit && (
+            <div style={s.errBanner}>Please complete all required fields before continuing.</div>
+          )}
 
           {step === 1 && (
             <>
@@ -184,11 +199,9 @@ export default function BookingForm() {
 
               <div style={s.field}>
                 <label style={s.label}>Preferred Date <span style={{ color: '#C41230' }}>*</span></label>
-                <span style={s.hint}>We'll confirm within 24 hours.</span>
-                <input type="date" value={form.requestedDate} min={new Date().toISOString().split('T')[0]}
-                  onChange={e => set('requestedDate', e.target.value)}
-                  style={{ ...s.input, ...(errors.requestedDate ? s.inputErr : {}) }} />
-                {errors.requestedDate && <span style={s.errMsg}>{errors.requestedDate}</span>}
+                <div style={{ ...s.input, background: '#f5f0e8', color: '#1a1208', fontWeight: 600 }}>
+                  {(() => { const [y,m,d] = form.requestedDate.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) })()}
+                </div>
               </div>
 
               <Field label="Menu Link" k="menuLink" placeholder="https://yourtruck.com/menu" hint="Link to your online menu" required form={form} errors={errors} onSet={set} />
@@ -260,7 +273,8 @@ const s = {
   input:    { border: '1.5px solid #e8e0d0', borderRadius: 8, padding: '0.6rem 0.9rem', fontSize: '0.9rem', outline: 'none', color: '#1a1208', background: '#fff', width: '100%', boxSizing: 'border-box' },
   inputErr: { border: '1.5px solid #C41230' },
   textarea: { resize: 'vertical', minHeight: 80 },
-  errMsg:   { color: '#C41230', fontSize: '0.75rem' },
+  errMsg:    { color: '#C41230', fontSize: '0.82rem', fontWeight: 600 },
+  errBanner: { background: '#fef0f0', border: '1.5px solid #C41230', borderRadius: 8, padding: '0.75rem 1rem', color: '#C41230', fontSize: '0.88rem', fontWeight: 600, marginBottom: '1.25rem' },
   errBox:   { background: '#fef0f0', border: '1px solid #f0c0c0', borderRadius: 8, padding: '0.75rem 1rem', color: '#C41230', fontSize: '0.85rem', marginBottom: '1rem' },
   btnRow:   { display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1rem' },
   btnPrimary: { background: '#C41230', color: '#fff', border: 'none', borderRadius: 10, padding: '0.75rem 1.8rem', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer' },

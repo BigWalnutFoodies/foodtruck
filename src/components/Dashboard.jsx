@@ -91,6 +91,8 @@ function DashboardContent({ session }) {
   const [expanded, setExpanded]         = useState(null)
   const [toast, setToast]               = useState(null)
   const [tab, setTab]                   = useState('applications')
+  const [location, setLocation]         = useState('')
+  const [locSaving, setLocSaving]       = useState(false)
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -98,13 +100,22 @@ function DashboardContent({ session }) {
   }
 
   const fetchAll = async () => {
-    const [{ data: apps }, { data: dates }] = await Promise.all([
+    const [{ data: apps }, { data: dates }, { data: cfg }] = await Promise.all([
       supabase.from('applications').select('*').order('submitted_at', { ascending: false }),
       supabase.from('event_dates').select('*').order('date', { ascending: true }),
+      supabase.from('config').select('value').eq('key', 'event_location').single(),
     ])
     setApplications(apps || [])
     setEventDates(dates || [])
+    if (cfg) setLocation(cfg.value || '')
     setLoadingData(false)
+  }
+
+  const saveLocation = async () => {
+    setLocSaving(true)
+    await supabase.from('config').upsert({ key: 'event_location', value: location })
+    setLocSaving(false)
+    showToast('Location saved')
   }
 
   useEffect(() => { fetchAll() }, [])
@@ -115,7 +126,7 @@ function DashboardContent({ session }) {
     showToast('✓ Application approved')
     try {
       await supabase.functions.invoke('notify-approved', {
-        body: { businessName: app.business_name, email: app.email, contact: app.contact_name, requestedDate: app.requested_date },
+        body: { businessName: app.business_name, email: app.email, contact: app.contact_name, requestedDate: app.requested_date, location },
       })
     } catch (_) { /* silent */ }
   }
@@ -135,6 +146,11 @@ function DashboardContent({ session }) {
     await supabase.from('applications').update({ status: 'cancelled', updated_at: new Date().toISOString() }).eq('id', app.id)
     await fetchAll()
     showToast('Booking cancelled')
+    try {
+      await supabase.functions.invoke('notify-cancelled', {
+        body: { businessName: app.business_name, email: app.email, contact: app.contact_name, requestedDate: app.requested_date },
+      })
+    } catch (_) { /* silent */ }
   }
 
   const handleAddDate = async (date, capacity = 1) => {
@@ -228,10 +244,11 @@ function DashboardContent({ session }) {
   })
 
   const counts = {
-    total:    applications.length,
-    pending:  applications.filter(a => a.status === 'pending').length,
-    approved: applications.filter(a => a.status === 'approved').length,
-    declined: applications.filter(a => a.status === 'declined').length,
+    total:     applications.length,
+    pending:   applications.filter(a => a.status === 'pending').length,
+    approved:  applications.filter(a => a.status === 'approved').length,
+    declined:  applications.filter(a => a.status === 'declined').length,
+    cancelled: applications.filter(a => a.status === 'cancelled').length,
   }
 
   return (
@@ -257,12 +274,13 @@ function DashboardContent({ session }) {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
         {[
-          { label: 'Total',    val: counts.total,    color: '#1a1208' },
-          { label: 'Pending',  val: counts.pending,  color: '#996600' },
-          { label: 'Approved', val: counts.approved, color: '#1a6e3e' },
-          { label: 'Declined', val: counts.declined, color: '#a00f25' },
+          { label: 'Total',     val: counts.total,     color: '#1a1208' },
+          { label: 'Pending',   val: counts.pending,   color: '#996600' },
+          { label: 'Approved',  val: counts.approved,  color: '#1a6e3e' },
+          { label: 'Declined',  val: counts.declined,  color: '#a00f25' },
+          { label: 'Cancelled', val: counts.cancelled, color: '#6b6055' },
         ].map(stat => (
           <div key={stat.label} style={s.statCard}>
             <div style={{ fontSize: '1.8rem', fontWeight: 700, color: stat.color, lineHeight: 1 }}>{stat.val}</div>
@@ -353,12 +371,26 @@ function DashboardContent({ session }) {
                           <img src={app.logo_url} alt="Truck logo" style={{ maxHeight: 80, maxWidth: 200, borderRadius: 8, border: '1px solid #e8e0d0' }} />
                         </div>
                       )}
-                      {app.status === 'pending' && (
-                        <div style={{ display: 'flex', gap: '0.75rem' }}>
-                          <button style={s.btnApprove} onClick={() => handleApprove(app)}>✓ Approve</button>
-                          <button style={s.btnDecline} onClick={() => handleDecline(app)}>✗ Decline</button>
-                        </div>
-                      )}
+                      {app.status === 'pending' && (() => {
+                        const dateEntry  = eventDates.find(e => e.date === app.requested_date)
+                        const filled     = applications.filter(a => a.requested_date === app.requested_date && a.status === 'approved').length
+                        const cap        = dateEntry?.capacity || 0
+                        const slotsLeft  = dateEntry ? cap - filled : null
+                        const isFull     = slotsLeft !== null && slotsLeft <= 0
+                        return (
+                          <>
+                            {dateEntry && (
+                              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: isFull ? '#C41230' : '#1a6e3e', marginBottom: '0.6rem' }}>
+                                {isFull ? `Date full — ${filled}/${cap} slots filled` : `${slotsLeft} of ${cap} slot${cap !== 1 ? 's' : ''} available for ${app.requested_date}`}
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', gap: '0.75rem' }}>
+                              {!isFull && <button style={s.btnApprove} onClick={() => handleApprove(app)}>✓ Approve</button>}
+                              <button style={s.btnDecline} onClick={() => handleDecline(app)}>✗ Decline</button>
+                            </div>
+                          </>
+                        )
+                      })()}
                       {app.status === 'approved' && (
                         <button style={s.btnCancel} onClick={() => handleCancel(app)}>Cancel Booking</button>
                       )}
@@ -375,7 +407,22 @@ function DashboardContent({ session }) {
           </div>
         </>
       ) : (
-        <OrganiserCalendar
+        <>
+          <div style={{ background: '#fff', border: '1px solid #e8e0d0', borderRadius: 12, padding: '1.25rem', marginBottom: '1rem' }}>
+            <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208', margin: '0 0 0.25rem' }}>Event Location & Parking</h3>
+            <p style={{ fontSize: '0.78rem', color: '#6b6055', margin: '0 0 0.75rem' }}>Included in confirmation emails sent to approved trucks. Update before approving if location changes.</p>
+            <textarea
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              rows={3}
+              placeholder="e.g. Main Street car park, enter from Oak St. Pitch 3 — look for the organisers on arrival."
+              style={{ ...s.input, width: '100%', resize: 'vertical', marginBottom: '0.75rem', boxSizing: 'border-box' }}
+            />
+            <button style={{ ...s.btnApprove, opacity: locSaving ? 0.7 : 1 }} onClick={saveLocation} disabled={locSaving}>
+              {locSaving ? 'Saving…' : 'Save Location'}
+            </button>
+          </div>
+          <OrganiserCalendar
           applications={applications}
           eventDates={eventDates}
           onApprove={handleApprove}
@@ -386,6 +433,7 @@ function DashboardContent({ session }) {
           onUpdateCapacity={handleUpdateCapacity}
           onClearPast={handleClearPast}
         />
+        </>
       )}
     </div>
   )
@@ -492,11 +540,8 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
           })}
         </div>
 
-        <div style={{ display: 'flex', gap: '1.2rem', marginTop: '1rem', flexWrap: 'wrap', fontSize: '0.75rem', color: '#6b6055', alignItems: 'center' }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#1a8a4a', display: 'inline-block' }} /> Available slots</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#C41230', display: 'inline-block' }} /> Full</span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F5A800', display: 'inline-block' }} /> Pending</span>
-          <span style={{ marginLeft: 'auto', color: '#bbb' }}>Click any date to add or manage</span>
+        <div style={{ marginTop: '0.75rem', textAlign: 'right', fontSize: '0.72rem', color: '#bbb' }}>
+          Click any date to add or manage
         </div>
       </div>
 

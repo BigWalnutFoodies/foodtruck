@@ -108,17 +108,6 @@ export default function CalendarView({ clickable = false }) {
             </>
           )}
 
-          <div style={styles.legend}>
-            {[
-              { color: '#1a8a4a', label: 'Available' },
-              { color: '#C41230', label: 'Booked' },
-            ].map(l => (
-              <div key={l.label} style={styles.legendItem}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: l.color, display: 'inline-block' }} />
-                <span style={{ color: '#6b6055', fontSize: '0.8rem' }}>{l.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
