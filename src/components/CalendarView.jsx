@@ -129,7 +129,7 @@ const styles = {
   section:    { padding: '2rem 2rem 4rem', background: '#fffdf7' },
   container:  { maxWidth: 860, margin: '0 auto' },
   header:     { marginBottom: '1.5rem' },
-  h2:         { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.8rem', marginBottom: 4, color: '#1a1208' },
+  h2:         { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.3rem', marginBottom: 4, color: '#1a1208' },
   sub:        { color: '#6b6055', fontSize: '0.88rem' },
   card:       { background: '#fff', border: '1px solid #e8e0d0', borderRadius: 16, padding: '1.5rem', boxShadow: '0 2px 16px rgba(0,0,0,0.06)' },
   monthNav:   { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' },
