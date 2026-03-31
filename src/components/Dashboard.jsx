@@ -146,6 +146,13 @@ function DashboardContent({ session }) {
     showToast('Capacity updated')
   }
 
+  const handleClearPast = async () => {
+    const today = new Date().toISOString().split('T')[0]
+    await supabase.from('event_dates').delete().lt('date', today)
+    await fetchAll()
+    showToast('Past dates cleared')
+  }
+
   const exportPhones = () => {
     const csv = 'Business,Contact,Phone\n' +
       applications.map(a => `"${a.business_name}","${a.contact_name}","${a.phone}"`).join('\n')
@@ -317,6 +324,7 @@ function DashboardContent({ session }) {
           onAddDate={handleAddDate}
           onRemoveDate={handleRemoveDate}
           onUpdateCapacity={handleUpdateCapacity}
+          onClearPast={handleClearPast}
         />
       )}
     </div>
@@ -325,7 +333,7 @@ function DashboardContent({ session }) {
 
 // ─── Organiser Calendar ───────────────────────────────────────────────────────
 
-function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onCancel, onAddDate, onRemoveDate, onUpdateCapacity }) {
+function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onCancel, onAddDate, onRemoveDate, onUpdateCapacity, onClearPast }) {
   const today   = new Date()
   const [current, setCurrent]   = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selected, setSelected] = useState(null)
@@ -487,7 +495,10 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
 
       {/* Add date */}
       <div style={{ background: '#fff', border: '1px solid #e8e0d0', borderRadius: 12, padding: '1.25rem' }}>
-        <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208', marginTop: 0, marginBottom: '0.75rem' }}>Add Date to Calendar</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1a1208', margin: 0 }}>Add Date to Calendar</h3>
+          <button style={s.btnRemove} onClick={onClearPast}>Clear past dates</button>
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
           <div>
             <label style={s.label}>Date</label>
