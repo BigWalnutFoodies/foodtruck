@@ -28,6 +28,7 @@ export default function BookingForm() {
     if (!form.email.includes('@'))  e.email = 'Valid email required'
     if (!form.phone.trim())         e.phone = 'Required'
     if (!form.contact.trim())       e.contact = 'Required'
+    if (!form.yearsInBusiness.toString().trim()) e.yearsInBusiness = 'Required'
     if (!form.cuisine)              e.cuisine = 'Please select a cuisine type'
     setErrors(e); return Object.keys(e).length === 0
   }
@@ -38,6 +39,7 @@ export default function BookingForm() {
     if (!form.bio.trim())      e.bio = 'Please add a short bio'
     if (!form.menuLink.trim()) e.menuLink = 'Required'
     if (!form.instagram.trim()) e.instagram = 'Required'
+    if (!logoFile)             e.logo = 'Please upload your truck logo'
     setErrors(e); return Object.keys(e).length === 0
   }
 
@@ -150,7 +152,7 @@ export default function BookingForm() {
                 <Field label="Phone Number"  k="phone" type="tel"   placeholder="415-555-0100" required />
               </div>
               <Field label="Day-of Contact Name" k="contact" placeholder="Who should we call on event day?" required />
-              <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3" />
+              <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3" required />
               <div style={s.btnRow}>
                 <button style={s.btnGhost}   onClick={() => navigate('/')}>Cancel</button>
                 <button style={s.btnPrimary} onClick={handleNext}>Next Step →</button>
@@ -189,10 +191,11 @@ export default function BookingForm() {
               </div>
 
               <div style={s.field}>
-                <label style={s.label}>Truck Logo <span style={s.optional}>(optional)</span></label>
+                <label style={s.label}>Truck Logo <span style={{ color: '#C41230' }}>*</span></label>
                 <span style={s.hint}>JPG, PNG or SVG — shown on your application</span>
                 <input type="file" accept="image/*" onChange={e => setLogoFile(e.target.files[0] || null)}
-                  style={{ ...s.input, padding: '0.45rem 0.9rem' }} />
+                  style={{ ...s.input, padding: '0.45rem 0.9rem', ...(errors.logo ? s.inputErr : {}) }} />
+                {errors.logo && <span style={s.errMsg}>{errors.logo}</span>}
               </div>
 
               <div style={s.field}>
