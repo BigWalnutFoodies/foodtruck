@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'onboarding@resend.dev',
+        from: 'Big Walnut Foodies <noreply@mail.bigwalnutfoodies.com>',
         to: email,
         subject: `You're confirmed for ${requestedDate} — Big Walnut Foodies`,
         html: `<p>Hi ${contact},</p>
