@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -163,6 +165,53 @@ function DashboardContent({ session }) {
     showToast('Past dates cleared')
   }
 
+  const generateSnapshot = () => {
+    const doc = new jsPDF()
+    const timestamp = new Date().toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
+    const active = [...applications]
+      .filter(a => ['pending', 'approved'].includes(a.status))
+      .sort((a, b) => a.requested_date.localeCompare(b.requested_date))
+
+    doc.setFontSize(18)
+    doc.setTextColor(196, 18, 48)
+    doc.text('Big Walnut Foodies', 14, 18)
+    doc.setFontSize(11)
+    doc.setTextColor(80, 60, 40)
+    doc.text('Booking Snapshot — Active Applications', 14, 26)
+    doc.setFontSize(8)
+    doc.setTextColor(120, 100, 80)
+    doc.text(`Generated: ${timestamp}`, 14, 32)
+    doc.text(`Total active: ${active.length} (${active.filter(a => a.status === 'approved').length} approved, ${active.filter(a => a.status === 'pending').length} pending)`, 14, 37)
+
+    autoTable(doc, {
+      startY: 43,
+      head: [['Date', 'Business', 'Cuisine', 'Status', 'Contact', 'Phone', 'Email']],
+      body: active.map(a => [
+        a.requested_date,
+        a.business_name,
+        a.cuisine,
+        a.status.charAt(0).toUpperCase() + a.status.slice(1),
+        a.contact_name,
+        a.phone,
+        a.email,
+      ]),
+      styles: { fontSize: 7.5, cellPadding: 2.5 },
+      headStyles: { fillColor: [196, 18, 48], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [255, 253, 247] },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { cellWidth: 38 },
+        2: { cellWidth: 24 },
+        3: { cellWidth: 18 },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 26 },
+        6: { cellWidth: 'auto' },
+      },
+    })
+
+    doc.save(`bwf-snapshot-${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
   const exportPhones = () => {
     const csv = 'Business,Contact,Phone\n' +
       applications.map(a => `"${a.business_name}","${a.contact_name}","${a.phone}"`).join('\n')
@@ -201,6 +250,7 @@ function DashboardContent({ session }) {
           <p style={{ color: '#6b6055', fontSize: '0.82rem' }}>{session.user.email}</p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button style={s.btnExport} onClick={generateSnapshot}>↓ Save Snapshot</button>
           <button style={s.btnExport} onClick={exportPhones}>↓ Export Phones</button>
           <button style={s.btnLogout} onClick={() => supabase.auth.signOut()}>Sign Out</button>
         </div>
