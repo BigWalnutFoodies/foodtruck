@@ -82,8 +82,23 @@ export default function BookingForm() {
     })
 
     setSubmitting(false)
-    if (!error) setSubmitted(true)
-    else setErrors({ submit: 'Something went wrong — please try again.' })
+    if (!error) {
+      // Fire notification — failure must never block the success screen
+      try {
+        await supabase.functions.invoke('notify-new-application', {
+          body: {
+            businessName: form.businessName,
+            email:        form.email,
+            contact:      form.contact,
+            requestedDate: form.requestedDate,
+            cuisine:      form.cuisine,
+          },
+        })
+      } catch (_) { /* silent */ }
+      setSubmitted(true)
+    } else {
+      setErrors({ submit: 'Something went wrong — please try again.' })
+    }
   }
 
   const Field = ({ label, k, type = 'text', placeholder, required, hint }) => (

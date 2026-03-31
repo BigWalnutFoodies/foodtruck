@@ -111,12 +111,22 @@ function DashboardContent({ session }) {
     await supabase.from('applications').update({ status: 'approved', updated_at: new Date().toISOString() }).eq('id', app.id)
     await fetchAll()
     showToast('✓ Application approved')
+    try {
+      await supabase.functions.invoke('notify-approved', {
+        body: { businessName: app.business_name, email: app.email, contact: app.contact_name, requestedDate: app.requested_date },
+      })
+    } catch (_) { /* silent */ }
   }
 
   const handleDecline = async (app) => {
     await supabase.from('applications').update({ status: 'declined', updated_at: new Date().toISOString() }).eq('id', app.id)
     await fetchAll()
     showToast('Application declined', 'error')
+    try {
+      await supabase.functions.invoke('notify-declined', {
+        body: { businessName: app.business_name, email: app.email, contact: app.contact_name, requestedDate: app.requested_date },
+      })
+    } catch (_) { /* silent */ }
   }
 
   const handleCancel = async (app) => {
