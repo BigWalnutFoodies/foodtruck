@@ -145,6 +145,13 @@ export default function BookingForm() {
         <button style={s.back} onClick={() => navigate('/')}>← Back to calendar</button>
 
         <div style={s.formCard} ref={formRef}>
+          <div style={s.dateBanner}>
+            <span style={s.dateBannerLabel}>Applying for</span>
+            <span style={s.dateBannerDate}>
+              {(() => { const [y,m,d] = preselectedDate.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) })()}
+            </span>
+          </div>
+
           <div style={s.progress}>
             {[1, 2].map(n => (
               <div key={n} style={s.progressStep}>
@@ -197,13 +204,6 @@ export default function BookingForm() {
               <h2 style={s.h2}>Date & truck details</h2>
               <p style={s.sub}>Pick your preferred date and share a bit more about your menu.</p>
 
-              <div style={s.field}>
-                <label style={s.label}>Preferred Date <span style={{ color: '#C41230' }}>*</span></label>
-                <div style={{ ...s.input, background: '#f5f0e8', color: '#1a1208', fontWeight: 600 }}>
-                  {(() => { const [y,m,d] = form.requestedDate.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}) })()}
-                </div>
-              </div>
-
               <Field label="Menu Link" k="menuLink" placeholder="https://yourtruck.com/menu" hint="Link to your online menu" required form={form} errors={errors} onSet={set} />
 
               <div style={s.grid2}>
@@ -252,6 +252,9 @@ export default function BookingForm() {
 }
 
 const s = {
+  dateBanner:      { background: '#F5A800', borderRadius: 10, padding: '0.75rem 1.25rem', marginBottom: '1.75rem', display: 'flex', flexDirection: 'column', gap: 2 },
+  dateBannerLabel: { fontSize: '0.72rem', fontWeight: 700, color: '#7a4f00', textTransform: 'uppercase', letterSpacing: '0.06em' },
+  dateBannerDate:  { fontSize: '1.05rem', fontWeight: 800, color: '#1a1208', fontFamily: "'Syne', sans-serif" },
   page:      { padding: '2.5rem 2rem 5rem', minHeight: '80vh', background: '#fffdf7' },
   container: { maxWidth: 680, margin: '0 auto' },
   back:      { background: 'transparent', border: '1px solid #e8e0d0', borderRadius: 8, padding: '0.45rem 1rem', color: '#6b6055', cursor: 'pointer', marginBottom: '1rem', fontSize: '0.9rem' },
