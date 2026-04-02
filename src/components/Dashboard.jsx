@@ -266,7 +266,7 @@ function DashboardContent({ session }) {
           <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#1a1208' }}>Organiser Dashboard</h2>
           <p style={{ color: '#6b6055', fontSize: '0.82rem' }}>{session.user.email}</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="dash-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button style={s.btnExport} onClick={generateSnapshot}>↓ Save Snapshot</button>
           <button style={s.btnExport} onClick={exportPhones}>↓ Export Phones</button>
           <button style={s.btnLogout} onClick={() => supabase.auth.signOut()}>Sign Out</button>

@@ -40,6 +40,9 @@ export default function Header() {
         <div style={styles.mobileMenu}>
           <button style={styles.mobileNavBtn} onClick={() => navTo('/calendar')}>📅 Community Calendar</button>
           <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>{authMobile}</button>
+          {session && (
+            <button style={{ ...styles.mobileNavBtn, color: '#6b6055' }} onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}>Sign Out</button>
+          )}
         </div>
       )}
 

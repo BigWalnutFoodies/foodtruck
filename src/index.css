@@ -61,9 +61,11 @@ button, input, select, textarea { font-family: 'Inter', sans-serif; }
   .form-btnrow > * { width: 100% !important; box-sizing: border-box !important; text-align: center !important; }
 
   /* Dashboard */
-  .dash-stats  { grid-template-columns: repeat(3, 1fr) !important; }
+  .dash-stats    { grid-template-columns: repeat(3, 1fr) !important; }
+  .dash-actions  { flex-direction: column !important; width: 100% !important; }
+  .dash-actions > * { width: 100% !important; box-sizing: border-box !important; }
   .dash-detail-grid { grid-template-columns: 1fr !important; }
-  .oc-cell     { min-height: 40px !important; padding: 0.2rem !important; }
+  .oc-cell       { min-height: 40px !important; padding: 0.2rem !important; }
 
   /* Footer */
   .footer-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
