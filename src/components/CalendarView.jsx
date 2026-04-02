@@ -47,14 +47,14 @@ export default function CalendarView({ clickable = false }) {
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d))
 
   return (
-    <section id="calendar-section" style={styles.section}>
+    <section id="calendar-section" style={styles.section} className="cal-section">
       <div style={styles.container}>
         <div style={styles.header}>
           <h2 style={styles.h2}>Pop-Up Schedule</h2>
           <p style={styles.sub}>Upcoming events and available dates</p>
         </div>
 
-        <div style={styles.card}>
+        <div style={styles.card} className="cal-card">
           <div style={styles.monthNav}>
             <button style={styles.navBtn} onClick={() => setCurrent(new Date(year, month - 1, 1))}>‹</button>
             <span style={styles.monthLabel}>{MONTHS[month]} {year}</span>
@@ -78,6 +78,7 @@ export default function CalendarView({ clickable = false }) {
                     <div
                       key={i}
                       onClick={isClickable ? () => navigate(`/apply?date=${isoDate(date)}`) : undefined}
+                      className={`cal-cell${status === 'booked' ? ' cal-cell-booked' : ''}`}
                       style={{
                         ...styles.cell,
                         ...styles['cell_' + status],
@@ -93,7 +94,7 @@ export default function CalendarView({ clickable = false }) {
                         <span style={styles.availableLabel}>{clickable ? 'Apply →' : 'Open'}</span>
                       )}
                       {status === 'booked' && trucks && trucks.map((truck, ti) => (
-                        <span key={ti} style={styles.truckLabel}>
+                        <span key={ti} style={styles.truckLabel} className="cal-truck-label">
                           {truck.business_name}
                           {truck.cuisine ? <span style={styles.cuisineLabel}> · {truck.cuisine}</span> : null}
                         </span>

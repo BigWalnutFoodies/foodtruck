@@ -140,11 +140,11 @@ export default function BookingForm() {
   }
 
   return (
-    <div style={s.page}>
+    <div style={s.page} className="form-page">
       <div style={s.container}>
         <button style={s.back} onClick={() => navigate('/')}>← Back to calendar</button>
 
-        <div style={s.formCard} ref={formRef}>
+        <div style={s.formCard} className="form-card" ref={formRef}>
           <div style={s.dateBanner}>
             <span style={s.dateBannerLabel}>Applying for</span>
             <span style={s.dateBannerDate}>
@@ -172,7 +172,7 @@ export default function BookingForm() {
             <>
               <h2 style={s.h2}>Tell us about your truck</h2>
               <p style={s.sub}>Basic contact info so we can get in touch.</p>
-              <div style={s.grid2}>
+              <div style={s.grid2} className="form-grid2">
                 <Field label="Business Name" k="businessName" placeholder="Taco Loco" required form={form} errors={errors} onSet={set} />
                 <div style={s.field}>
                   <label style={s.label}>Cuisine Type <span style={{ color: '#C41230' }}>*</span></label>
@@ -186,13 +186,13 @@ export default function BookingForm() {
                   {errors.cuisine && <span style={s.errMsg}>{errors.cuisine}</span>}
                 </div>
               </div>
-              <div style={s.grid2}>
+              <div style={s.grid2} className="form-grid2">
                 <Field label="Email Address" k="email" type="email" placeholder="you@yourtruck.com" required form={form} errors={errors} onSet={set} />
                 <Field label="Phone Number"  k="phone" type="tel"   placeholder="415-555-0100"      required form={form} errors={errors} onSet={set} />
               </div>
               <Field label="Day-of Contact Name" k="contact"         placeholder="Who should we call on event day?" required form={form} errors={errors} onSet={set} />
               <Field label="Years in Business"   k="yearsInBusiness" type="number" placeholder="e.g. 3"            required form={form} errors={errors} onSet={set} />
-              <div style={s.btnRow}>
+              <div style={s.btnRow} className="form-btnrow">
                 <button style={s.btnGhost}   onClick={() => navigate('/')}>Cancel</button>
                 <button style={s.btnPrimary} onClick={handleNext}>Next Step →</button>
               </div>
@@ -206,7 +206,7 @@ export default function BookingForm() {
 
               <Field label="Menu Link" k="menuLink" placeholder="https://yourtruck.com/menu" hint="Link to your online menu" required form={form} errors={errors} onSet={set} />
 
-              <div style={s.grid2}>
+              <div style={s.grid2} className="form-grid2">
                 <Field label="Instagram" k="instagram" placeholder="@yourtruck"               required form={form} errors={errors} onSet={set} />
                 <Field label="Facebook"  k="facebook"  placeholder="facebook.com/yourtruck"            form={form} errors={errors} onSet={set} />
               </div>
@@ -237,7 +237,7 @@ export default function BookingForm() {
 
               {errors.submit && <div style={s.errBox}>{errors.submit}</div>}
 
-              <div style={s.btnRow}>
+              <div style={s.btnRow} className="form-btnrow">
                 <button style={s.btnGhost} onClick={() => setStep(1)} disabled={submitting}>← Back</button>
                 <button style={{ ...s.btnPrimary, opacity: submitting ? 0.7 : 1 }} onClick={handleSubmit} disabled={submitting}>
                   {submitting ? 'Submitting…' : 'Submit Request ✓'}

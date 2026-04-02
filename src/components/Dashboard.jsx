@@ -274,7 +274,7 @@ function DashboardContent({ session }) {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+      <div className="dash-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
         {[
           { label: 'Total',     val: counts.total,     color: '#1a1208' },
           { label: 'Pending',   val: counts.pending,   color: '#996600' },
@@ -346,7 +346,7 @@ function DashboardContent({ session }) {
 
                   {isOpen && (
                     <div style={s.detail}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem', marginBottom: '1rem' }}>
+                      <div className="dash-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 2rem', marginBottom: '1rem' }}>
                         {[
                           ['Email', app.email],
                           ['Phone', app.phone],
@@ -508,6 +508,7 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
               return (
                 <div key={i}
                   onClick={() => !isPast && setSelected(isSelected ? null : iso)}
+                  className="oc-cell"
                   style={{ ...s.ocCell, opacity: isPast ? 0.4 : 1, cursor: isPast ? 'default' : 'pointer' }}>
                   <span style={s.ocNum}>{date.getDate()}</span>
                 </div>
@@ -517,6 +518,7 @@ function OrganiserCalendar({ applications, eventDates, onApprove, onDecline, onC
             return (
               <div key={i}
                 onClick={() => setSelected(isSelected ? null : iso)}
+                className="oc-cell"
                 style={{
                   ...s.ocCell,
                   background:  data.isFull ? '#fef0f0' : '#edfaf3',

@@ -40,3 +40,31 @@ button, input, select, textarea { font-family: 'Inter', sans-serif; }
   .desktop-nav   { display: flex !important; }
   .hamburger     { display: none !important; }
 }
+
+@media (max-width: 600px) {
+  /* Hero */
+  .hero-section      { padding: 1.5rem 1.25rem 1rem !important; }
+  .hero-illustration { display: none !important; }
+
+  /* CalendarView */
+  .cal-section { padding: 1rem 0.75rem 2rem !important; }
+  .cal-card    { padding: 1rem 0.75rem !important; }
+  .cal-cell    { min-height: 40px !important; padding: 0.2rem !important; gap: 1px !important; }
+  .cal-cell-booked { min-height: 52px !important; }
+  .cal-truck-label { font-size: 0.55rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+  /* BookingForm */
+  .form-page  { padding: 1.25rem 1rem 3rem !important; }
+  .form-card  { padding: 1.25rem 1rem !important; }
+  .form-grid2 { grid-template-columns: 1fr !important; }
+  .form-btnrow { flex-direction: column-reverse !important; }
+  .form-btnrow > * { width: 100% !important; box-sizing: border-box !important; text-align: center !important; }
+
+  /* Dashboard */
+  .dash-stats  { grid-template-columns: repeat(3, 1fr) !important; }
+  .dash-detail-grid { grid-template-columns: 1fr !important; }
+  .oc-cell     { min-height: 40px !important; padding: 0.2rem !important; }
+
+  /* Footer */
+  .footer-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+}

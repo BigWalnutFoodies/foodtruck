@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <footer style={styles.footer}>
       <div style={styles.container}>
-        <div style={styles.top}>
+        <div style={styles.top} className="footer-grid">
           <div>
             <div style={styles.logo}>
               <img src={logo} alt="Big Walnut Foodies" style={{ height: 44, width: 'auto' }} />

@@ -5,7 +5,7 @@ export default function Hero() {
   const navigate = useNavigate()
 
   return (
-    <section style={styles.hero}>
+    <section style={styles.hero} className="hero-section">
       <div style={styles.inner}>
         <div style={styles.tag}>🎪 Now Accepting Applications</div>
         <h1 style={styles.h1}>Bring Your Truck<br /><span style={styles.accent}>To Our Pop-Up</span></h1>
@@ -19,7 +19,7 @@ export default function Hero() {
           ))}
         </div>
       </div>
-      <div style={styles.illustration}>
+      <div style={styles.illustration} className="hero-illustration">
         <div style={styles.truckEmoji}>🚚</div>
         <div style={styles.sparkles}>
           <span style={{ ...styles.spark, top: '10%', left: '15%', animationDelay: '0s' }}>✦</span>
