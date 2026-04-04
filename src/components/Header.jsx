@@ -27,18 +27,18 @@ export default function Header() {
         <div style={styles.logo} onClick={() => navTo('/')}>
           <img src={logo} alt="Big Walnut Foodies" style={{ height: 64, width: 'auto' }} />
         </div>
-        <nav style={styles.desktopNav}>
-          <button style={isActive('/calendar') ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Community Calendar</button>
+        <nav style={styles.desktopNav} className="desktop-nav">
+          <button style={isActive('/calendar') ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Popup Calendar</button>
           <button style={isActive('/dashboard') ? { ...styles.navCta, ...styles.navCtaActive } : styles.navCta} onClick={() => navTo('/dashboard')}>{authLabel}</button>
         </nav>
-        <button style={styles.hamburger} onClick={() => setMenuOpen(o => !o)}>
+        <button style={styles.hamburger} className="hamburger" onClick={() => setMenuOpen(o => !o)}>
           {menuOpen ? '✕' : '☰'}
         </button>
       </header>
 
       {menuOpen && (
         <div style={styles.mobileMenu}>
-          <button style={styles.mobileNavBtn} onClick={() => navTo('/calendar')}>📅 Community Calendar</button>
+          <button style={styles.mobileNavBtn} onClick={() => navTo('/calendar')}>📅 Popup Calendar</button>
           <button style={{ ...styles.mobileNavBtn, color: '#C41230', fontWeight: 700 }} onClick={() => navTo('/dashboard')}>{authMobile}</button>
           {session && (
             <button style={{ ...styles.mobileNavBtn, color: '#6b6055' }} onClick={() => { supabase.auth.signOut(); setMenuOpen(false) }}>Sign Out</button>
@@ -68,10 +68,11 @@ const styles = {
   navBtn: {
     background: 'transparent', border: '1px solid transparent',
     borderRadius: 8, padding: '0.4rem 0.85rem',
-    fontSize: '0.85rem', fontWeight: 500, color: '#6b6055', cursor: 'pointer',
+    fontSize: '0.9rem', fontWeight: 700, color: '#1a1208', cursor: 'pointer',
+    letterSpacing: 0.1,
   },
   navActive:    { background: '#fff0f0', border: '1px solid #f0c0c0', color: '#C41230' },
-  navCta:       { background: '#C41230', color: '#fff', border: 'none', borderRadius: 8, padding: '0.45rem 1rem', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer' },
+  navCta:       { background: '#C41230', color: '#fff', border: 'none', borderRadius: 8, padding: '0.45rem 1rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' },
   navCtaActive: { background: '#a00f25' },
   hamburger: {
     background: 'transparent', border: '1px solid #e8e0d0',
@@ -88,6 +89,6 @@ const styles = {
   mobileNavBtn: {
     background: 'transparent', border: 'none', borderBottom: '1px solid #f0ece4',
     padding: '1rem 1.25rem', textAlign: 'left',
-    fontSize: '0.95rem', fontWeight: 500, color: '#1a1208', cursor: 'pointer',
+    fontSize: '0.95rem', fontWeight: 600, color: '#1a1208', cursor: 'pointer',
   },
 }

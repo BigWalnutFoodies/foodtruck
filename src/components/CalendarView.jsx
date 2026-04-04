@@ -8,15 +8,15 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 export default function CalendarView({ clickable = false }) {
   const today    = new Date()
   const navigate = useNavigate()
-  const [current, setCurrent]     = useState(new Date(today.getFullYear(), today.getMonth(), 1))
-  const [eventDates, setEventDates]   = useState([])
+  const [current, setCurrent]       = useState(new Date(today.getFullYear(), today.getMonth(), 1))
+  const [eventDates, setEventDates] = useState([])
   const [approvedApps, setApprovedApps] = useState([])
-  const [loading, setLoading]     = useState(true)
+  const [loading, setLoading]       = useState(true)
 
   useEffect(() => {
     Promise.all([
       supabase.from('event_dates').select('date, capacity'),
-      supabase.from('applications').select('requested_date, business_name, cuisine').eq('status', 'approved'),
+      supabase.from('applications').select('requested_date, business_name').eq('status', 'approved'),
     ]).then(([{ data: dates, error: e1 }, { data: apps, error: e2 }]) => {
       if (!e1) setEventDates(dates || [])
       if (!e2) setApprovedApps(apps || [])
@@ -25,7 +25,7 @@ export default function CalendarView({ clickable = false }) {
   }, [])
 
   const year = current.getFullYear(), month = current.getMonth()
-  const firstDay  = new Date(year, month, 1).getDay()
+  const firstDay   = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
   const isoDate = (date) =>
@@ -50,7 +50,7 @@ export default function CalendarView({ clickable = false }) {
     <section id="calendar-section" style={styles.section} className="cal-section">
       <div style={styles.container}>
         <div style={styles.header}>
-          <h2 style={styles.h2}>Pop-Up Schedule</h2>
+          <h2 style={styles.h2}>Popup Schedule</h2>
           <p style={styles.sub}>Upcoming events and available dates</p>
         </div>
 
@@ -96,7 +96,6 @@ export default function CalendarView({ clickable = false }) {
                       {status === 'booked' && trucks && trucks.map((truck, ti) => (
                         <span key={ti} style={styles.truckLabel} className="cal-truck-label">
                           {truck.business_name}
-                          {truck.cuisine ? <span style={styles.cuisineLabel}> · {truck.cuisine}</span> : null}
                         </span>
                       ))}
                       {status === 'booked' && !trucks?.length && (
@@ -108,7 +107,6 @@ export default function CalendarView({ clickable = false }) {
               </div>
             </>
           )}
-
         </div>
       </div>
     </section>
@@ -138,9 +136,6 @@ const styles = {
   dateNum:        { fontSize: '0.82rem', fontWeight: 600, color: '#1a1208', lineHeight: 1 },
   availableLabel: { fontSize: '0.62rem', fontWeight: 600, color: '#1a8a4a', textTransform: 'uppercase', letterSpacing: 0.3 },
   truckLabel:     { fontSize: '0.62rem', fontWeight: 700, color: '#C41230', textAlign: 'center', lineHeight: 1.3, wordBreak: 'break-word' },
-  cuisineLabel:   { fontWeight: 400, color: '#a00f25' },
   bookedLabel:    { fontSize: '0.62rem', fontWeight: 600, color: '#C41230' },
-  legend:     { display: 'flex', gap: '1.2rem', marginTop: '1rem', flexWrap: 'wrap' },
-  legendItem: { display: 'flex', alignItems: 'center', gap: '0.4rem' },
-  loading:    { textAlign: 'center', padding: '3rem', color: '#6b6055', fontSize: '0.9rem' },
+  loading:        { textAlign: 'center', padding: '3rem', color: '#6b6055', fontSize: '0.9rem' },
 }

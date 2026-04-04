@@ -7,14 +7,16 @@ export default function Hero() {
   return (
     <section style={styles.hero} className="hero-section">
       <div style={styles.inner}>
-        <div style={styles.tag}>🎪 Now Accepting Applications</div>
-        <h1 style={styles.h1}>Bring Your Truck<br /><span style={styles.accent}>To Our Pop-Up</span></h1>
-        <p style={styles.p}>Check available dates, submit your info, and we'll confirm your spot. Simple, fast, no back-and-forth emails.</p>
+        <div style={styles.tag}>🎪 Ready to Pop Up?</div>
+        <h1 style={styles.h1}>Welcome to Big Walnut Foodies<br /><span style={styles.accent}>We'd love to host you!</span></h1>
+        <p style={styles.p}>Since 2020, Big Walnut Foodies has grown a loyal community of 2,500+ local foodies, hosting weekly food truck pop-ups in Sunbury, Ohio.</p>
+        <p style={styles.p2}>Check out our available dates, submit your request, and we'll take it from there. You'll receive a text once you're confirmed.</p>
+        <p style={styles.p3}>We look forward to seeing you this summer.</p>
         <div style={styles.btnRow}>
-          <button style={styles.btnPrimary} onClick={() => document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' })}>View Calendar</button>
+          <button style={styles.btnPrimary} onClick={() => document.getElementById('calendar-section')?.scrollIntoView({ behavior: 'smooth' })}>Reserve Your Date</button>
         </div>
         <div style={styles.pills}>
-          {['Free to apply', 'Response within 24hrs', 'Email notifications', 'Easy approval process'].map(t => (
+          {['No fee to book', 'Fast approval', 'Text confirmation', 'Built for local pop-ups'].map(t => (
             <span key={t} style={styles.pill}>✓ {t}</span>
           ))}
         </div>
@@ -42,10 +44,11 @@ const styles = {
   tag:       { display: 'inline-block', background: '#fff0f0', border: '1px solid #f0c0c0', color: '#C41230', fontSize: '0.78rem', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 100, marginBottom: '1.5rem' },
   h1:        { fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: 'clamp(1.3rem, 2vw, 1.8rem)', lineHeight: 1.1, marginBottom: '1rem', color: '#1a1208' },
   accent:    { color: '#C41230' },
-  p:         { color: '#6b6055', fontSize: '1rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 440 },
+  p:         { color: '#6b6055', fontSize: '1rem', lineHeight: 1.7, marginBottom: '0.75rem', maxWidth: 440 },
+  p2:        { color: '#6b6055', fontSize: '1rem', lineHeight: 1.7, marginBottom: '0.75rem', maxWidth: 440 },
+  p3:        { color: '#6b6055', fontSize: '1rem', lineHeight: 1.7, marginBottom: '2rem', maxWidth: 440, fontStyle: 'italic' },
   btnRow:    { display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' },
   btnPrimary:   { background: '#C41230', color: '#fff', border: 'none', borderRadius: 10, padding: '0.85rem 1.8rem', fontWeight: 700, fontSize: '1rem', cursor: 'pointer' },
-  btnSecondary: { background: '#fff', color: '#1a1208', border: '1.5px solid #e8e0d0', borderRadius: 10, padding: '0.85rem 1.8rem', fontWeight: 600, fontSize: '1rem', cursor: 'pointer' },
   pills:     { display: 'flex', gap: '0.6rem', flexWrap: 'wrap' },
   pill:      { background: '#fff0f0', border: '1px solid #f0c0c0', color: '#C41230', fontSize: '0.78rem', fontWeight: 600, padding: '0.3rem 0.75rem', borderRadius: 100 },
   illustration: { flex: '0 0 auto', position: 'relative', width: 260, height: 260, background: 'linear-gradient(135deg, #fff0f0 0%, #fff8e8 100%)', borderRadius: '50%', border: '2px solid #f0c0c0', display: 'flex', alignItems: 'center', justifyContent: 'center' },

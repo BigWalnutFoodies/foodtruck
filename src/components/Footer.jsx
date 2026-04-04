@@ -10,12 +10,13 @@ export default function Footer() {
             <div style={styles.logo}>
               <img src={logo} alt="Big Walnut Foodies" style={{ height: 44, width: 'auto' }} />
             </div>
-            <p style={styles.tagline}>Simple food truck booking for pop-up events.<br />Community-run, no fuss, just good food.</p>
+            <p style={styles.tagline}>Simple food truck booking for pop-up events.<br />Built for the community. Designed to be easy.</p>
           </div>
           <div style={styles.col}>
             <div style={styles.colTitle}>Contact</div>
-            <a href="mailto:hello@bigwalnutfoodies.com" style={styles.footLink}>✉ hello@bigwalnutfoodies.com</a>
-            <span style={styles.footItem}>📍 Big Walnut area</span>
+            <a href="mailto:BigWalnutFoodies@gmail.com" style={styles.footLink}>✉ BigWalnutFoodies@gmail.com</a>
+            <span style={styles.footItem}>📍 1100 Sunbury Meadows Drive</span>
+            <span style={styles.footItem}>Sunbury, OH 43074</span>
           </div>
         </div>
         <div style={styles.bottom}>
