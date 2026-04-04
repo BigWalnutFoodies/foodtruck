@@ -8,7 +8,7 @@ export default function Footer() {
         <div style={styles.top} className="footer-grid">
           <div>
             <div style={styles.logo}>
-              <img src={logo} alt="Big Walnut Foodies" style={{ height: 44, width: 'auto' }} />
+              <img src={logo} alt="Big Walnut Foodies" style={{ height: 56, width: 'auto' }} />
             </div>
             <p style={styles.tagline}>Simple food truck booking for pop-up events.<br />Built for the community. Designed to be easy.</p>
           </div>

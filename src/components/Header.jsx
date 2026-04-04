@@ -25,7 +25,7 @@ export default function Header() {
     <>
       <header style={styles.header}>
         <div style={styles.logo} onClick={() => navTo('/')}>
-          <img src={logo} alt="Big Walnut Foodies" style={{ height: 64, width: 'auto' }} />
+          <img src={logo} alt="Big Walnut Foodies" style={{ height: 80, width: 'auto' }} />
         </div>
         <nav style={styles.desktopNav} className="desktop-nav">
           <button style={isActive('/calendar') ? { ...styles.navBtn, ...styles.navActive } : styles.navBtn} onClick={() => navTo('/calendar')}>Popup Calendar</button>
@@ -61,7 +61,7 @@ const styles = {
     borderBottom: '1px solid #e8e0d0',
     padding: '0.5rem 1.5rem',
     display: 'flex', alignItems: 'center',
-    justifyContent: 'space-between', minHeight: 80,
+    justifyContent: 'space-between', minHeight: 96,
   },
   logo:       { display: 'flex', alignItems: 'center', cursor: 'pointer', flexShrink: 0 },
   desktopNav: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
@@ -81,7 +81,7 @@ const styles = {
     fontSize: '1.1rem', cursor: 'pointer', color: '#1a1208', flexShrink: 0,
   },
   mobileMenu: {
-    position: 'sticky', top: 80, zIndex: 99,
+    position: 'sticky', top: 96, zIndex: 99,
     background: '#fff', borderBottom: '1px solid #e8e0d0',
     display: 'flex', flexDirection: 'column',
     boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
