@@ -35,8 +35,8 @@ const styles = {
   tagline:   { color: '#8a7f6e', fontSize: '0.85rem', lineHeight: 1.6 },
   col:       { display: 'flex', flexDirection: 'column', gap: '0.6rem' },
   colTitle:  { color: '#fff', fontWeight: 700, fontSize: '0.8rem', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
-  footItem:  { color: '#8a7f6e', fontSize: '0.85rem' },
-  footLink:  { color: '#8a7f6e', textDecoration: 'none', fontSize: '0.85rem' },
+  footItem:  { color: '#8a7f6e', fontSize: '0.85rem', display: 'block' },
+  footLink:  { color: '#8a7f6e', textDecoration: 'none', fontSize: '0.85rem', display: 'block' },
   bottom:    { borderTop: '1px solid #2e2418', paddingTop: '1.2rem' },
   copy:      { color: '#5a5040', fontSize: '0.8rem' },
 }
