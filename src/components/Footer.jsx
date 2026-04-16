@@ -10,7 +10,7 @@ export default function Footer() {
             <div style={styles.logo}>
               <img src={logo} alt="Big Walnut Foodies" style={{ height: 56, width: 'auto' }} />
             </div>
-            <p style={styles.tagline}>Simple food truck booking for pop-up events.<br />Built for the community. Designed to be easy.</p>
+            <p style={styles.tagline}>Connecting Sunbury's best food trucks with a community that loves to eat.<br />Simple booking. Fast approval. No fees.</p>
           </div>
           <div style={styles.col}>
             <div style={styles.colTitle}>Contact</div>
