@@ -1,112 +1,130 @@
-# Big Walnut Foodies — Transfer Guide
-
-> Sequence matters — follow the steps in order.
-> Julie's steps are marked [JULIE]. Ian's steps are marked [IAN].
+# Big Walnut Foodies — Handover Guide
 
 ---
 
-## Vercel
+## Overview
 
-**[JULIE] Step 1 — Create a Vercel Team**
-- Log in to vercel.com
-- Click the account selector (top-left) → Create Team
-- Name it e.g. `BigWalnutFoodies`
-- Keep the free plan
+React + Vite + Supabase + Netlify + Resend.
+Julie owns the GitHub repo and Netlify free account.
+I am a GitHub contributor — my pushes auto-deploy via Netlify.
 
-**[JULIE] Step 2 — Invite Ian as Owner**
-- Team Settings → Members → Invite
-- Email: ianflemingusa@gmail.com
-- Role: Owner
-- Send invite
+**Key decision:** The GitHub repo is public. Netlify's contributor restrictions
+only apply to private repos. With a public repo, any contributor's push
+auto-deploys on the Netlify free plan at no cost.
 
-**[IAN] Step 3 — Accept invite and transfer project**
-- Accept the Vercel team invite (email link)
-- Open the project (still under Ian's personal account)
-- Settings → General → Transfer Project
-- Select Julie's team from the dropdown → confirm
-- Project moves to Julie's team, Ian stays as Owner
+Env vars (Supabase keys) are stored in Netlify's dashboard — never in the repo.
 
-**[JULIE] Step 4 — Confirm**
-- Log in to Vercel, switch to your team (top-left)
-- You should see the project listed
-- Settings → Environment Variables — confirm VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are present
+---
+
+## Deployment Flow
+
+1. I push to GitHub (Julie's repo)
+2. Netlify detects the push and auto-deploys
+3. No manual steps needed from Julie
+
+---
+
+## Setup Steps (one-time, done on Zoom)
+
+**Julie does:**
+
+1. GitHub repo → Settings → Danger Zone → **Change visibility → Make public**
+
+2. Go to **https://netlify.com** → Sign up with GitHub
+
+3. Add new site → Import from Git → GitHub → select **foodtruck** repo
+
+4. Build settings:
+
+| Field | Value |
+|---|---|
+| Branch to deploy | main |
+| Base directory | Leave as default |
+| Build command | npm run build |
+| Publish directory | dist |
+| Functions directory | Leave as default |
+
+5. Add environment variables:
+
+| Key | Value |
+|---|---|
+| VITE_SUPABASE_URL | https://chmgvzbihdgkjmkcckoh.supabase.co |
+| VITE_SUPABASE_ANON_KEY | sb_publishable_iM54987Ufml7DVYeeBRFWQ_n5t_J6sV |
+
+6. Click **Deploy** — wait for green Published status
+
+7. Send me the Netlify URL (e.g. https://bigwalnutfoodies.netlify.app)
+
+**I then handle:**
+- Verify the site is working on the Netlify URL
+- Add bigwalnutfoodies.com domain in Netlify
+- Update GoDaddy nameservers to Netlify's
+- All future deployments via git push
+
+---
+
+## Environment Variables
+
+Stored in Netlify dashboard — Site → Site configuration → Environment variables.
+Never committed to the repo. New developers get values from me directly.
+For local development copy `.env.example` to `.env.local` and fill in real values.
+
+---
+
+## GitHub Repo
+
+- Owner: Julie (howdoilearn)
+- Visibility: Public
+- My role: Contributor
+- URL: https://github.com/howdoilearn/foodtruck
+
+---
+
+## Netlify
+
+- Account: Julie's free account
+- Domain: bigwalnutfoodies.com
+- DNS: Netlify DNS (nameservers updated in GoDaddy)
+- Auto-deploy: on push to main from any contributor
 
 ---
 
 ## Supabase
 
-**[JULIE] Step 5 — Create a Supabase Organization**
-- Log in to supabase.com
-- Click the organization selector (top-right) → New organization
-- Name it e.g. `BigWalnutFoodies`
-- Keep the free plan
-
-**[JULIE] Step 6 — Invite Ian as Owner**
-- Organization Settings → Members → Invite member
-- Email: ianflemingusa@gmail.com
-- Role: Owner
-- Send invite
-
-**[IAN] Step 7 — Accept invite and transfer project**
-- Accept the Supabase org invite (email link)
-- Open the Supabase project (still under Ian's account)
-- Project Settings → General → Transfer Project
-- Select Julie's organization → confirm
-- Project moves to Julie's org, Ian stays as Owner
-
-**[JULIE] Step 8 — Confirm**
-- Log in to Supabase, switch to your organization
-- You should see the project
-- Open Table Editor — confirm applications, event_dates, config tables are visible
-
----
-
-## Domain (bigwalnutfoodies.com)
-
-**[IAN] Step 9 — Initiate domain transfer**
-- Unlock the domain at the registrar
-- Send Julie the authorization/EPP code
-
-**[JULIE] Step 10 — Accept domain transfer**
-- Purchase transfer at your preferred registrar (e.g. Namecheap, GoDaddy)
-- Enter the auth code when prompted
-- Transfer takes 5–7 days to complete
-- Reimburse Ian $20 for original registration fee
-
-**[IAN] Step 11 — Update DNS if needed**
-- Once transfer is complete, confirm DNS is still pointing to Vercel
-- If not: add CNAME record pointing to cname.vercel-dns.com
+- Project URL: https://chmgvzbihdgkjmkcckoh.supabase.co
+- Auth: two organiser accounts — Supabase Dashboard → Authentication → Users
+- Tables: applications, event_dates, config
+- Storage: logos bucket
 
 ---
 
 ## Resend (email notifications)
 
-**[JULIE] Step 12 — Create a Resend account**
-- Sign up at resend.com (free tier is sufficient)
-- Add and verify your domain: bigwalnutfoodies.com
-- Create an API key
+Edge functions deployed to Supabase:
+- notify-new-application
+- notify-approved
+- notify-declined
+- notify-cancelled
 
-**[JULIE] Step 13 — Add API key to Supabase**
-- Supabase → Settings → Edge Functions → Secrets
-- Add secret: RESEND_API_KEY = your key
-
-**[IAN] Step 14 — Deploy edge functions**
-- Run from terminal:
-  ```
-  npx supabase login
-  npx supabase link --project-ref <project-ref>
-  npx supabase functions deploy notify-new-application
-  npx supabase functions deploy notify-approved
-  npx supabase functions deploy notify-declined
-  npx supabase functions deploy notify-cancelled
-  ```
+API key stored as Supabase edge function secret: RESEND_API_KEY
 
 ---
 
-## Done
+## Domain
 
-Once all steps are complete:
-- Julie owns the Vercel team, Supabase org, domain, and Resend account
-- Ian has Owner access to Vercel and Supabase for ongoing work
-- All data is intact — no migration needed
-- Ian can be removed from both platforms at any time via Members settings
+- bigwalnutfoodies.com
+- Registered and managed by me at GoDaddy
+- DNS: Netlify nameservers
+
+---
+
+## Local Development
+
+```bash
+git clone https://github.com/howdoilearn/foodtruck
+cd foodtruck
+npm install
+cp .env.example .env.local
+# fill in real values in .env.local
+npm run dev
+```
