@@ -4,7 +4,7 @@ Live demo: https://jlxwzbrfbhoqymldinbv.supabase.co (see Julie for credentials)
 
 React + Vite + Supabase. Deployed on Vercel.
 
-## What it does
+## What it does Today
 
 - Public calendar — truck owners view available dates and submit booking requests
 - Booking form — business details, cuisine, contact, bio, social links
