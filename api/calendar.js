@@ -1,5 +1,5 @@
-const SUPABASE_URL = 'https://jlxwzbrfbhoqymldinbv.supabase.co'
-const SUPABASE_KEY = 'sb_publishable_ToRu54AXJUSUEGzgMa3inw_4Rjf6ftW'
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY
 
 function nextDayIso(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number)
