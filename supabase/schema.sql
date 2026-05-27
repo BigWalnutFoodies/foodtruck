@@ -83,6 +83,16 @@ create policy "auth delete event_dates"
 create policy "auth update config"
   on config for update using (auth.role() = 'authenticated');
 
+-- ── EXPLICIT GRANTS ─────────────────────────────────────────
+-- Required from October 30, 2026 — Supabase will no longer expose
+-- public schema tables to the Data API by default. These grants
+-- make the access explicit and future-proof the schema.
+-- Safe to run now on existing projects.
+
+grant select, insert, update, delete on applications to anon, authenticated;
+grant select, insert, update, delete on event_dates  to anon, authenticated;
+grant select, update                 on config        to anon, authenticated;
+
 -- ── ORGANISER ACCOUNTS ───────────────────────────────────────
 -- Create organiser accounts via Supabase Dashboard:
 -- Authentication → Users → Add user
