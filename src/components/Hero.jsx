@@ -7,7 +7,7 @@ export default function Hero() {
   return (
     <section style={styles.hero} className="hero-section">
       <div style={styles.inner}>
-        <div style={styles.tag}>🌻 Now taking Summer 2026 bookings!</div>
+        <div style={styles.tag}>🌻 Summer 2026 — Reserve your date today!</div>
         <h1 style={styles.h1}>Welcome to Big Walnut Foodies<br /><span style={styles.accent}>Summer 2026 bookings are open!</span></h1>
         <p style={styles.p}>Since 2020, Big Walnut Foodies has grown a loyal community of 2,500+ local foodies, hosting weekly food truck pop-ups in Sunbury, Ohio.</p>
         <p style={styles.p2}>Check out our available dates, submit your request, and we'll take it from there. You'll receive a text once you're confirmed.</p>
