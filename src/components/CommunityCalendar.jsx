@@ -12,6 +12,11 @@ function instagramUrl(handle) {
   return `https://www.instagram.com/${clean}/`
 }
 
+function externalUrl(url) {
+  if (!url) return null
+  return url.startsWith('http') ? url : `https://${url}`
+}
+
 export default function CommunityCalendar() {
   const [events, setEvents]   = useState([])
   const [loading, setLoading] = useState(true)
@@ -67,7 +72,7 @@ export default function CommunityCalendar() {
                     </a>
                   )}
                   {ev.menu_link && (
-                    <a href={ev.menu_link} target="_blank" rel="noopener noreferrer" style={{ ...s.link, ...s.linkMenu }}>
+                    <a href={externalUrl(ev.menu_link)} target="_blank" rel="noopener noreferrer" style={{ ...s.link, ...s.linkMenu }}>
                       Menu / Site
                     </a>
                   )}
