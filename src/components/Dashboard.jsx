@@ -333,18 +333,21 @@ function DashboardContent({ session }) {
                   <div style={s.detail}>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: '0.5rem 1.5rem', marginBottom: '1rem' }}>
                       {[
-                        ['Contact',  app.contact_name],
-                        ['Email',    app.email],
-                        ['Phone',    app.phone],
-                        ['Years',    app.years_in_biz],
-                        ['Cuisine',  app.cuisine],
-                        ['Instagram',app.instagram],
-                        ['Facebook', app.facebook],
-                        ['Menu',     app.menu_link],
-                      ].filter(([,v]) => v).map(([label, value]) => (
+                        ['Contact',   app.contact_name, false],
+                        ['Email',     app.email,         false],
+                        ['Phone',     app.phone,         false],
+                        ['Years',     app.years_in_biz,  false],
+                        ['Cuisine',   app.cuisine,       false],
+                        ['Instagram', app.instagram,     false],
+                        ['Facebook',  app.facebook,      false],
+                        ['Menu',      app.menu_link,     true],
+                      ].filter(([,v]) => v).map(([label, value, isLink]) => (
                         <div key={label}>
                           <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6b6055', textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
-                          <div style={{ fontSize: '0.85rem', color: '#1a1208', wordBreak: 'break-all' }}>{value}</div>
+                          {isLink
+                            ? <a href={value.startsWith('http') ? value : `https://${value}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: '#C41230', wordBreak: 'break-all' }}>{value}</a>
+                            : <div style={{ fontSize: '0.85rem', color: '#1a1208', wordBreak: 'break-all' }}>{value}</div>
+                          }
                         </div>
                       ))}
                     </div>
